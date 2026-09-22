@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  /* Cocina de azulejo: blanco hueso, verde pino, azul de loza. */
+  --color-hueso: #fbfaf7;
+  --color-loza: #ffffff;
+  --color-tinta: #14231c;
+  --color-tenue: #6d7a72;
+  --color-linea: #e3e0d8;
+
+  --color-pino: #1f5d45;
+  --color-pino-claro: #e8f0ea;
+  --color-azulejo: #2c6e9b;
+  --color-ambar: #b5791a;
+  --color-alarma: #a03232;
+
+  --font-display: var(--fuente-display), Georgia, serif;
+  --font-sans: var(--fuente-ui), system-ui, sans-serif;
+}
+
+html {
+  background: var(--color-hueso);
+  color: var(--color-tinta);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  /* Deja sitio a la barra de abajo del móvil. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Las cifras en columna no deben bailar al cambiar. */
+.cifra {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-pino);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
