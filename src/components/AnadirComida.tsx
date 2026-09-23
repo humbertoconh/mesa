@@ -1,17 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { MOMENTOS, momentoSugerido } from "@/lib/objetivo";
 import { guardarComida } from "@/app/hoy/actions";
+import { Escaner } from "@/components/Escaner";
 import type { AlimentoDesglosado } from "@/lib/tipos";
 
+interface Producto {
+  nombre: string;
+  marca: string | null;
+  kcal_100: number;
+  prot_100: number;
+  carb_100: number;
+  grasa_100: number;
+}
+
+type Modo = "cerrado" | "elegir" | "texto" | "escaner" | "producto";
+
 export function AnadirComida() {
-  const [abierto, setAbierto] = useState(false);
+  const [modo, setModo] = useState<Modo>("cerrado");
   const [texto, setTexto] = useState("");
   const [momento, setMomento] = useState<string>(momentoSugerido());
-  const [lista, setLista] = useState<AlimentoDesglosado[] | null>(null);
+  const [lista, setLista] = useState<AlimentoDesglosado[]>([]);
+  const [producto, setProducto] = useState<Producto | null>(null);
+  const [gramos, setGramos] = useState(100);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function cerrar() {
+    setModo("cerrado");
+    setTexto("");
+    setLista([]);
+    setProducto(null);
+    setError(null);
+  }
 
   async function desglosar() {
     setCargando(true);
@@ -25,7 +47,9 @@ export function AnadirComida() {
       const datos = await r.json();
       if (!r.ok) throw new Error(datos.error);
       if (!datos.alimentos?.length) throw new Error("No he encontrado comida ahí.");
-      setLista(datos.alimentos);
+      setLista([...lista, ...datos.alimentos]);
+      setTexto("");
+      setModo("elegir");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Algo ha fallado.");
     } finally {
@@ -33,8 +57,50 @@ export function AnadirComida() {
     }
   }
 
+  const alLeer = useCallback(async (codigo: string) => {
+    setCargando(true);
+    setError(null);
+    try {
+      const r = await fetch("/api/barras", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ codigo }),
+      });
+      const datos = await r.json();
+      if (!r.ok) throw new Error(datos.error);
+      setProducto(datos.alimento);
+      setGramos(100);
+      setModo("producto");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Algo ha fallado.");
+      setModo("elegir");
+    } finally {
+      setCargando(false);
+    }
+  }, []);
+
+  function anadirProducto() {
+    if (!producto) return;
+    const f = gramos / 100;
+    setLista([
+      ...lista,
+      {
+        nombre: producto.marca
+          ? `${producto.nombre} (${producto.marca})`
+          : producto.nombre,
+        gramos,
+        kcal: Math.round(producto.kcal_100 * f),
+        prot_g: Math.round(producto.prot_100 * f * 10) / 10,
+        carb_g: Math.round(producto.carb_100 * f * 10) / 10,
+        grasa_g: Math.round(producto.grasa_100 * f * 10) / 10,
+      },
+    ]);
+    setProducto(null);
+    setModo("elegir");
+  }
+
   async function guardar() {
-    if (!lista) return;
+    if (!lista.length) return;
     setCargando(true);
     const r = await guardarComida(momento, texto, lista);
     setCargando(false);
@@ -42,19 +108,12 @@ export function AnadirComida() {
     cerrar();
   }
 
-  function cerrar() {
-    setAbierto(false);
-    setTexto("");
-    setLista(null);
-    setError(null);
-  }
+  const total = lista.reduce((s, a) => s + a.kcal, 0);
 
-  const total = lista?.reduce((s, a) => s + a.kcal, 0) ?? 0;
-
-  if (!abierto) {
+  if (modo === "cerrado") {
     return (
       <button
-        onClick={() => setAbierto(true)}
+        onClick={() => setModo("elegir")}
         className="w-full rounded-xl border border-dashed border-[var(--color-linea)] px-4 py-4 text-[14px] text-[var(--color-tenue)]"
       >
         Apuntar una comida
@@ -80,21 +139,7 @@ export function AnadirComida() {
         ))}
       </div>
 
-      {!lista ? (
-        <>
-          <textarea
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-            rows={3}
-            autoFocus
-            placeholder="dos huevos fritos, pan con tomate y un café con leche"
-            className="mt-3 w-full resize-none rounded-lg border border-[var(--color-linea)] px-3.5 py-3 text-[15px] leading-relaxed"
-          />
-          <p className="mt-1.5 text-[12px] text-[var(--color-tenue)]">
-            Escríbelo como se lo contarías a alguien. Ya se encarga la app de las cifras.
-          </p>
-        </>
-      ) : (
+      {lista.length > 0 && (
         <ul className="mt-3 divide-y divide-[var(--color-linea)]">
           {lista.map((a, i) => (
             <li key={i} className="flex items-baseline justify-between gap-3 py-2.5">
@@ -124,27 +169,122 @@ export function AnadirComida() {
         </ul>
       )}
 
+      {modo === "elegir" && (
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setModo("texto")}
+            className="rounded-lg border border-[var(--color-linea)] px-3 py-4 text-[13px]"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 strokeWidth="1.6" className="mx-auto">
+              <path d="M4 6h16M4 11h16M4 16h10" />
+            </svg>
+            <span className="mt-1.5 block">Escribir o dictar</span>
+          </button>
+          <button
+            onClick={() => setModo("escaner")}
+            className="rounded-lg border border-[var(--color-linea)] px-3 py-4 text-[13px]"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 strokeWidth="1.6" className="mx-auto">
+              <path d="M3 4.5v15M7 4.5v15M11 4.5v15M14.5 4.5v15M18 4.5v15M21 4.5v15" />
+            </svg>
+            <span className="mt-1.5 block">Código de barras</span>
+          </button>
+        </div>
+      )}
+
+      {modo === "texto" && (
+        <>
+          <textarea
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            rows={3}
+            autoFocus
+            placeholder="dos huevos fritos, pan con tomate y un café con leche"
+            className="mt-3 w-full resize-none rounded-lg border border-[var(--color-linea)] px-3.5 py-3 text-[15px] leading-relaxed"
+          />
+          <p className="mt-1.5 text-[12px] text-[var(--color-tenue)]">
+            Escríbelo como se lo contarías a alguien. En el móvil puedes dictarlo
+            con el micro del teclado.
+          </p>
+          <button
+            onClick={desglosar}
+            disabled={cargando || texto.trim().length < 3}
+            className="mt-3 w-full rounded-lg bg-[var(--color-pino)] px-4 py-2.5 text-[14px] font-medium text-white disabled:opacity-50"
+          >
+            {cargando ? "Un momento…" : "Desglosar"}
+          </button>
+        </>
+      )}
+
+      {modo === "escaner" && (
+        <Escaner alLeer={alLeer} alCerrar={() => setModo("elegir")} />
+      )}
+
+      {modo === "producto" && producto && (
+        <div className="mt-3">
+          <div className="rounded-lg border border-[var(--color-linea)] px-3.5 py-3">
+            <div className="text-[14px] font-medium">{producto.nombre}</div>
+            {producto.marca && (
+              <div className="text-[12px] text-[var(--color-tenue)]">{producto.marca}</div>
+            )}
+            <div className="cifra mt-1.5 text-[12px] text-[var(--color-tenue)]">
+              {Math.round(producto.kcal_100)} kcal por 100 g
+            </div>
+          </div>
+
+          <label className="mt-3 flex items-center gap-2 text-[13px]">
+            Cantidad
+            <input
+              type="number"
+              value={gramos}
+              min={1}
+              autoFocus
+              onChange={(e) => setGramos(Number(e.target.value) || 0)}
+              className="cifra w-24 rounded-lg border border-[var(--color-linea)] px-3 py-2 text-right"
+            />
+            g
+            <span className="cifra ml-auto text-[13px] font-medium">
+              {Math.round((producto.kcal_100 * gramos) / 100)} kcal
+            </span>
+          </label>
+
+          <button
+            onClick={anadirProducto}
+            disabled={gramos < 1}
+            className="mt-3 w-full rounded-lg bg-[var(--color-pino)] px-4 py-2.5 text-[14px] font-medium text-white disabled:opacity-50"
+          >
+            Añadir
+          </button>
+        </div>
+      )}
+
       {error && (
         <p role="alert" className="mt-3 text-[13px] text-[var(--color-alarma)]">
           {error}
         </p>
       )}
 
-      <div className="mt-4 flex gap-2">
-        <button
-          onClick={cerrar}
-          className="rounded-lg border border-[var(--color-linea)] px-4 py-2.5 text-[14px]"
-        >
-          Cancelar
-        </button>
-        <button
-          onClick={lista ? guardar : desglosar}
-          disabled={cargando || (!lista && texto.trim().length < 3)}
-          className="flex-1 rounded-lg bg-[var(--color-pino)] px-4 py-2.5 text-[14px] font-medium text-white disabled:opacity-50"
-        >
-          {cargando ? "Un momento…" : lista ? "Guardar" : "Desglosar"}
-        </button>
-      </div>
+      {modo !== "escaner" && (
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={modo === "elegir" ? cerrar : () => setModo("elegir")}
+            className="rounded-lg border border-[var(--color-linea)] px-4 py-2.5 text-[14px]"
+          >
+            {modo === "elegir" ? "Cancelar" : "Volver"}
+          </button>
+          {lista.length > 0 && (
+            <button
+              onClick={guardar}
+              disabled={cargando}
+              className="flex-1 rounded-lg bg-[var(--color-pino)] px-4 py-2.5 text-[14px] font-medium text-white disabled:opacity-50"
+            >
+              {cargando ? "Guardando…" : `Guardar ${lista.length}`}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
