@@ -204,8 +204,14 @@ export async function subirFoto(recetaId: string, datos: FormData) {
   if (!user) redirect("/entrar");
 
   const archivo = datos.get("foto");
+  console.log("FOTO: recibido", {
+    esFile: archivo instanceof File,
+    tipo: archivo instanceof File ? archivo.type : typeof archivo,
+    bytes: archivo instanceof File ? archivo.size : 0,
+  });
+
   if (!(archivo instanceof File) || !archivo.size) {
-    return { error: "No ha llegado la foto." };
+    return { error: "No ha llegado la foto (vacía o mal formada)." };
   }
   if (archivo.size > 3_000_000) {
     return { error: "La foto pesa demasiado." };
@@ -223,7 +229,12 @@ export async function subirFoto(recetaId: string, datos: FormData) {
   const { error: e1 } = await supabase.storage
     .from("recetas")
     .upload(ruta, archivo, { contentType: "image/jpeg", upsert: true });
-  if (e1) return { error: e1.message };
+
+  if (e1) {
+    console.error("FOTO: storage falla", JSON.stringify(e1));
+    return { error: `Storage: ${e1.message}` };
+  }
+  console.log("FOTO: subida ok", ruta);
 
   const { data: publica } = supabase.storage.from("recetas").getPublicUrl(ruta);
 
@@ -231,7 +242,12 @@ export async function subirFoto(recetaId: string, datos: FormData) {
     .from("recetas")
     .update({ foto_url: publica.publicUrl })
     .eq("id", recetaId);
-  if (e2) return { error: e2.message };
+
+  if (e2) {
+    console.error("FOTO: update falla", JSON.stringify(e2));
+    return { error: `Base de datos: ${e2.message}` };
+  }
+  console.log("FOTO: guardada", publica.publicUrl);
 
   revalidatePath("/recetas");
   revalidatePath(`/recetas/${recetaId}`);

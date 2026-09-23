@@ -23,6 +23,9 @@ export function FotoReceta({ recetaId, foto, nombre }: Props) {
       // Se recorta y se reduce aquí, en el móvil: subir 4 MB para
       // enseñar una miniatura no tiene sentido.
       const blob = await cuadrada(archivo);
+      if (!blob || !blob.size) {
+        throw new Error("El móvil no ha podido preparar la foto.");
+      }
 
       const datos = new FormData();
       datos.append("foto", blob, "plato.jpg");
@@ -80,7 +83,7 @@ export function FotoReceta({ recetaId, foto, nombre }: Props) {
       </button>
 
       {error && (
-        <p role="alert" className="mt-2 text-[13px] text-[var(--color-alarma)]">
+        <p role="alert" className="mt-2 break-words text-[13px] text-[var(--color-alarma)]">
           {error}
         </p>
       )}
