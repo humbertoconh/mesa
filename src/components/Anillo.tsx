@@ -9,49 +9,59 @@ interface Props {
  * porque el objetivo es caer dentro, no clavar una cifra.
  */
 export function Anillo({ consumidas, min, max }: Props) {
-  const R = 68;
+  const R = 74;
   const C = 2 * Math.PI * R;
 
   const proporcion = Math.min(consumidas / max, 1);
   const pasado = Math.max(0, consumidas - max);
   const marcaMin = (min / max) * C;
-
   const restan = Math.round(max - consumidas);
-  const color = pasado > 0 ? "var(--color-ambar)" : "var(--color-pino)";
 
   return (
-    <div className="relative mx-auto w-[184px]">
-      <svg viewBox="0 0 184 184" className="w-full" role="img"
+    <div className="relative mx-auto w-[200px]">
+      <svg viewBox="0 0 200 200" className="w-full" role="img"
            aria-label={`${Math.round(consumidas)} de ${max} kilocalorías`}>
-        <circle cx="92" cy="92" r={R} fill="none"
-                stroke="var(--color-pino-claro)" strokeWidth="14" />
+        <defs>
+          <linearGradient id="grad-anillo" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#6fbf73" />
+            <stop offset="100%" stopColor="#1f6a4c" />
+          </linearGradient>
+          <linearGradient id="grad-pasado" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#f2b24f" />
+            <stop offset="100%" stopColor="#f2762e" />
+          </linearGradient>
+        </defs>
+
+        <circle cx="100" cy="100" r={R} fill="none"
+                stroke="rgba(255,255,255,0.28)" strokeWidth="16" />
         <circle
-          cx="92" cy="92" r={R} fill="none"
-          stroke={color} strokeWidth="14" strokeLinecap="round"
+          cx="100" cy="100" r={R} fill="none"
+          stroke={pasado > 0 ? "url(#grad-pasado)" : "url(#grad-anillo)"}
+          strokeWidth="16" strokeLinecap="round"
           strokeDasharray={`${proporcion * C} ${C}`}
-          transform="rotate(-90 92 92)"
+          transform="rotate(-90 100 100)"
         />
         <circle
-          cx="92" cy="92" r={R} fill="none"
-          stroke="var(--color-tinta)" strokeWidth="14" strokeOpacity="0.28"
-          strokeDasharray={`2 ${C}`}
+          cx="100" cy="100" r={R} fill="none"
+          stroke="#ffffff" strokeWidth="16" strokeOpacity="0.55"
+          strokeDasharray={`3 ${C}`}
           strokeDashoffset={-marcaMin}
-          transform="rotate(-90 92 92)"
+          transform="rotate(-90 100 100)"
         />
       </svg>
 
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <div className="cifra font-[family-name:var(--font-display)] text-[34px] font-semibold leading-none">
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+        <div className="cifra font-[family-name:var(--font-display)] text-[40px] font-semibold leading-none">
           {Math.round(consumidas).toLocaleString("es-ES")}
         </div>
-        <div className="mt-1.5 text-[12px] text-[var(--color-tenue)]">
+        <div className="mt-2 text-[12px] opacity-85">
           {pasado > 0
             ? `${Math.round(pasado)} por encima`
             : restan > 0
             ? `te quedan ${restan.toLocaleString("es-ES")}`
             : "justo en el rango"}
         </div>
-        <div className="mt-0.5 cifra text-[11px] text-[var(--color-tenue)]">
+        <div className="cifra mt-0.5 text-[11px] opacity-65">
           {min.toLocaleString("es-ES")}–{max.toLocaleString("es-ES")} kcal
         </div>
       </div>

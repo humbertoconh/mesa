@@ -106,15 +106,15 @@ export function AnadirComida() {
     return (
       <button
         onClick={() => setModo("elegir")}
-        className="w-full rounded-xl border border-dashed border-[var(--color-linea)] px-4 py-4 text-[14px] text-[var(--color-tenue)]"
+        className="w-full rounded-[18px] bg-[var(--color-naranja)] px-4 py-4 text-[15px] font-semibold text-white shadow-[var(--shadow-tarjeta)]"
       >
-        Apuntar una comida
+        + Apuntar una comida
       </button>
     );
   }
 
   return (
-    <div className="rounded-xl border border-[var(--color-pino)] bg-[var(--color-loza)] p-4">
+    <div className="tarjeta p-4 ring-2 ring-[var(--color-naranja)]">
       <div className="flex flex-wrap gap-1.5">
         {MOMENTOS.map((m) => (
           <button
@@ -122,8 +122,8 @@ export function AnadirComida() {
             onClick={() => setMomento(m)}
             className={`rounded-full px-3 py-1.5 text-[12px] capitalize ${
               momento === m
-                ? "bg-[var(--color-pino)] text-white"
-                : "bg-[var(--color-pino-claro)] text-[var(--color-pino)]"
+                ? "bg-[var(--color-naranja)] text-white"
+                : "bg-[var(--color-naranja-claro)] text-[#8a441c]"
             }`}
           >
             {m}

@@ -4,10 +4,12 @@ import { clienteServidor } from "@/lib/supabase/server";
 import { Navegacion } from "@/components/Navegacion";
 import { ModoCocina } from "@/components/ModoCocina";
 import { RecetaEscalada } from "@/components/RecetaEscalada";
+import { FotoReceta } from "@/components/FotoReceta";
 
 interface Ficha {
   id: string;
   nombre: string;
+  foto_url: string | null;
   raciones_base: number;
   minutos: number | null;
   pasos: string[] | null;
@@ -31,7 +33,7 @@ export default async function FichaReceta({
 
   const { data: receta } = await supabase
     .from("recetas")
-    .select("id, nombre, raciones_base, minutos, pasos, hogar_id, receta_ingredientes(gramos, seccion, alimentos(nombre, kcal_100))")
+    .select("id, nombre, foto_url, raciones_base, minutos, pasos, hogar_id, receta_ingredientes(gramos, seccion, alimentos(nombre, kcal_100))")
     .eq("id", id)
     .maybeSingle<Ficha>();
 
@@ -54,7 +56,7 @@ export default async function FichaReceta({
   const pasos = receta.pasos ?? [];
 
   return (
-    <main className="mx-auto max-w-md px-5 pb-28 pt-10">
+    <main className="mx-auto max-w-md px-5 pb-28 pt-8">
       <div className="flex items-center justify-between">
         <Link href="/recetas" className="text-[13px] text-[var(--color-tenue)]">
           ← Recetario
@@ -67,7 +69,16 @@ export default async function FichaReceta({
         </Link>
       </div>
 
-      <h1 className="mt-3 font-[family-name:var(--font-display)] text-[26px] font-semibold leading-tight">
+      <div className="mt-4">
+        <FotoReceta
+          recetaId={receta.id}
+          hogarId={receta.hogar_id}
+          foto={receta.foto_url}
+          nombre={receta.nombre}
+        />
+      </div>
+
+      <h1 className="mt-4 font-[family-name:var(--font-display)] text-[26px] font-semibold leading-tight">
         {receta.nombre}
       </h1>
       {receta.minutos && (

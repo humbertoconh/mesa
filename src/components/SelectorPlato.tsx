@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { ponerPlato, quitarPlato } from "@/app/menu/actions";
+import { Miniatura } from "@/components/Miniatura";
 
 interface Props {
   fecha: string;
@@ -11,6 +12,7 @@ interface Props {
   puesto: {
     id: string;
     nombre: string;
+    foto: string | null;
     racion: { gramos: number; kcal: number } | null;
   } | null;
 }
@@ -22,6 +24,7 @@ export function SelectorPlato({ fecha, momento, recetas, puesto }: Props) {
   if (puesto && !abierto) {
     return (
       <div className={`flex items-center gap-2 ${pendiente ? "opacity-40" : ""}`}>
+        <Miniatura nombre={puesto.nombre} foto={puesto.foto} tam={38} radio={11} />
         <Link href={`/recetas/${puesto.id}`} className="flex-1 text-[14px]">
           {puesto.nombre}
           {puesto.racion && (

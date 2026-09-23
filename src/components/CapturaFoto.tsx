@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { reducir } from "@/lib/imagen";
 import type { AlimentoDesglosado } from "@/lib/tipos";
 
 export interface Producto {
@@ -16,28 +17,6 @@ interface Props {
   alLeerEtiqueta: (p: Producto) => void;
   alLeerPlato: (a: AlimentoDesglosado[]) => void;
   alFallar: (mensaje: string) => void;
-}
-
-/**
- * Reduce la foto antes de mandarla. Del móvil salen de 4 MB y con 1.200 px
- * de lado ya se lee cualquier etiqueta: subirla entera es tardar el triple
- * para nada.
- */
-async function reducir(archivo: File): Promise<{ base64: string; tipo: string }> {
-  const bitmap = await createImageBitmap(archivo);
-  const max = 1200;
-  const escala = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
-  const w = Math.round(bitmap.width * escala);
-  const h = Math.round(bitmap.height * escala);
-
-  const lienzo = document.createElement("canvas");
-  lienzo.width = w;
-  lienzo.height = h;
-  lienzo.getContext("2d")!.drawImage(bitmap, 0, 0, w, h);
-  bitmap.close();
-
-  const url = lienzo.toDataURL("image/jpeg", 0.82);
-  return { base64: url.split(",")[1], tipo: "image/jpeg" };
 }
 
 export function CapturaFoto({ alLeerEtiqueta, alLeerPlato, alFallar }: Props) {

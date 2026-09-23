@@ -32,7 +32,7 @@ export function RecetaEscalada({ ingredientes, racionesBase, comensales }: Props
 
   return (
     <>
-      <div className="mt-5 flex items-center gap-3 rounded-xl border border-[var(--color-linea)] bg-[var(--color-loza)] px-4 py-3">
+      <div className="tarjeta mt-5 flex items-center gap-3 px-4 py-3">
         <span className="text-[13px]">Para</span>
         <button
           onClick={() => setRaciones(Math.max(1, raciones - 1))}
@@ -56,7 +56,7 @@ export function RecetaEscalada({ ingredientes, racionesBase, comensales }: Props
       </div>
 
       <h2 className="mt-6 text-[13px] font-medium">Ingredientes</h2>
-      <ul className="mt-2 divide-y divide-[var(--color-linea)] rounded-xl border border-[var(--color-linea)] bg-[var(--color-loza)] px-4">
+      <ul className="tarjeta mt-2 divide-y divide-[var(--color-linea)] px-4">
         {ingredientes.map((i, n) => (
           <li key={n} className="flex items-baseline justify-between gap-3 py-2.5">
             <div>

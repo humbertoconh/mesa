@@ -54,15 +54,15 @@ export default async function Progreso() {
     : null;
 
   return (
-    <main className="mx-auto max-w-md px-5 pb-28 pt-10">
-      <h1 className="font-[family-name:var(--font-display)] text-[26px] font-semibold leading-none">
-        Progreso
-      </h1>
-      <p className="mt-1.5 text-[13px] text-[var(--color-tenue)]">
-        Sólo lo ves tú.
-      </p>
+    <main className="mx-auto max-w-md pb-28">
+      <header className="cabecera">
+        <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-none">
+          Progreso
+        </h1>
+        <p className="mt-1.5 text-[12.5px] opacity-80">Sólo lo ves tú.</p>
+      </header>
 
-      <section className="mt-7 rounded-xl border border-[var(--color-linea)] bg-[var(--color-loza)] px-4 py-4">
+      <section className="tarjeta mx-5 mt-6 px-4 py-4">
         <div className="flex items-baseline justify-between">
           <h2 className="text-[13px] font-medium">Peso</h2>
           {ultimo && (
@@ -74,15 +74,15 @@ export default async function Progreso() {
         </div>
       </section>
 
-      <section className="mt-3 grid grid-cols-2 gap-3">
-        <div className="rounded-xl border border-[var(--color-linea)] bg-[var(--color-loza)] px-4 py-3.5 text-center">
+      <section className="mt-3 grid grid-cols-2 gap-3 px-5">
+        <div className="tarjeta px-4 py-3.5 text-center">
           <div className="text-[11px] uppercase tracking-wider text-[var(--color-tenue)]">
             Días apuntados
           </div>
           <div className="cifra mt-1 text-[22px] font-semibold">{porDia.size}</div>
           <div className="text-[11px] text-[var(--color-tenue)]">de los últimos 7</div>
         </div>
-        <div className="rounded-xl border border-[var(--color-linea)] bg-[var(--color-loza)] px-4 py-3.5 text-center">
+        <div className="tarjeta px-4 py-3.5 text-center">
           <div className="text-[11px] uppercase tracking-wider text-[var(--color-tenue)]">
             Media
           </div>
@@ -94,7 +94,7 @@ export default async function Progreso() {
       </section>
 
       {objetivo && (
-        <section className="mt-3 rounded-xl border border-[var(--color-linea)] bg-[var(--color-loza)] px-4 py-3.5">
+        <section className="tarjeta mx-5 mt-3 px-4 py-3.5">
           <div className="flex items-baseline justify-between">
             <span className="text-[13px] font-medium">Objetivo actual</span>
             <span className="cifra text-[13px]">
@@ -109,9 +109,9 @@ export default async function Progreso() {
         </section>
       )}
 
-      <section className="mt-6">
+      <section className="mt-6 px-5">
         {pesadoHoy ? (
-          <p className="rounded-xl border border-dashed border-[var(--color-linea)] px-4 py-4 text-center text-[13px] text-[var(--color-tenue)]">
+          <p className="tarjeta px-4 py-4 text-center text-[13px] text-[var(--color-tenue)]">
             Hoy ya te has pesado. Nos vemos mañana.
           </p>
         ) : (

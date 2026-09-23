@@ -13,6 +13,7 @@ const MOMENTOS_MENU: Momento[] = ["comida", "cena"];
 interface RecetaConIngredientes {
   id: string;
   nombre: string;
+  foto_url: string | null;
   raciones_base: number;
   receta_ingredientes: { gramos: number; alimentos: { kcal_100: number } | null }[];
 }
@@ -43,7 +44,7 @@ export default async function Menu({
 
   const { data: recetas } = await supabase
     .from("recetas")
-    .select("id, nombre, raciones_base, receta_ingredientes(gramos, alimentos(kcal_100))")
+    .select("id, nombre, foto_url, raciones_base, receta_ingredientes(gramos, alimentos(kcal_100))")
     .order("nombre")
     .returns<RecetaConIngredientes[]>();
 
@@ -87,6 +88,7 @@ export default async function Menu({
     return {
       id: r.id,
       nombre: r.nombre,
+      foto: r.foto_url,
       racion: kcalDia
         ? calcularRacion(gramos, kcal, r.raciones_base, kcalDia, momento)
         : null,
@@ -140,10 +142,8 @@ export default async function Menu({
             {dias.map((fecha) => (
               <article
                 key={fecha}
-                className={`rounded-xl border bg-[var(--color-loza)] px-4 py-3 ${
-                  fecha === hoy
-                    ? "border-[var(--color-pino)]"
-                    : "border-[var(--color-linea)]"
+                className={`tarjeta px-4 py-3 ${
+                  fecha === hoy ? "ring-2 ring-[var(--color-lima)]" : ""
                 }`}
               >
                 <h2 className="text-[13px] font-medium capitalize">

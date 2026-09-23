@@ -26,12 +26,12 @@ export function Habituales({ lista }: { lista: Habitual[] }) {
               empezar(() => { repetir(h); });
             }}
             disabled={pendiente}
-            className={`rounded-full border border-[var(--color-linea)] bg-[var(--color-loza)] px-3.5 py-2 text-left text-[13px] ${
+            className={`rounded-full bg-[var(--color-azafran-claro)] px-3.5 py-2 text-left text-[13px] font-medium text-[#7a5410] ${
               pendiente && tocado === h.nombre ? "opacity-40" : ""
             }`}
           >
             {h.nombre}
-            <span className="cifra ml-1.5 text-[11px] text-[var(--color-tenue)]">
+            <span className="cifra ml-1.5 text-[11px] opacity-70">
               {Math.round(h.kcal)}
             </span>
           </button>

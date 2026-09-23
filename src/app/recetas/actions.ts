@@ -139,3 +139,18 @@ export async function actualizarReceta(
   revalidatePath("/menu");
   return { ok: true };
 }
+
+export async function guardarFoto(id: string, url: string) {
+  const supabase = await clienteServidor();
+  const { error } = await supabase
+    .from("recetas")
+    .update({ foto_url: url })
+    .eq("id", id);
+  if (error) return { error: error.message };
+
+  revalidatePath("/recetas");
+  revalidatePath(`/recetas/${id}`);
+  revalidatePath("/menu");
+  revalidatePath("/hoy");
+  return { ok: true };
+}

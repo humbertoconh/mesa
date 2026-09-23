@@ -53,7 +53,7 @@ export default async function Hoy() {
   // Lo que toca hoy según el menú de la casa, con mi ración calculada.
   const { data: puestos } = await supabase
     .from("menu_semanal")
-    .select("momento, recetas(id, nombre, raciones_base, receta_ingredientes(gramos, alimentos(kcal_100)))")
+    .select("momento, recetas(id, nombre, foto_url, raciones_base, receta_ingredientes(gramos, alimentos(kcal_100)))")
     .eq("fecha", hoy);
 
   const kcalDia = (objetivo.kcal_min + objetivo.kcal_max) / 2;
@@ -64,6 +64,7 @@ export default async function Hoy() {
       recetas: {
         id: string;
         nombre: string;
+        foto_url: string | null;
         raciones_base: number;
         receta_ingredientes: { gramos: number; alimentos: { kcal_100: number } | null }[];
       } | null;
@@ -80,6 +81,7 @@ export default async function Hoy() {
     return [{
       momento: fila.momento,
       nombre: r.nombre,
+      foto: r.foto_url,
       racion: calcularRacion(gramos, kcal, r.raciones_base, kcalDia, fila.momento),
       yaApuntado: filas.some((f) => f.momento === fila.momento && f.descripcion === r.nombre),
     }];
@@ -122,54 +124,63 @@ export default async function Hoy() {
     .slice(0, 6);
 
   return (
-    <main className="mx-auto max-w-md px-5 pb-28 pt-10">
-      <header className="flex items-start justify-between">
-        <div>
-          <h1 className="font-[family-name:var(--font-display)] text-[26px] font-semibold leading-none">
-            Hola, {miembro.nombre}
-          </h1>
-          <p className="mt-1.5 text-[13px] text-[var(--color-tenue)] first-letter:uppercase">
-            {fecha}
-          </p>
+    <main className="mx-auto max-w-md pb-28">
+      <header className="cabecera">
+        <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-none">
+          Hola, {miembro.nombre}
+        </h1>
+        <p className="mt-1.5 text-[12.5px] opacity-80 first-letter:uppercase">
+          {fecha}
+        </p>
+
+        <div className="mt-5">
+          <Anillo
+            consumidas={suma("kcal")}
+            min={objetivo.kcal_min}
+            max={objetivo.kcal_max}
+          />
         </div>
       </header>
 
-      <section className="mt-8">
-        <Anillo
-          consumidas={suma("kcal")}
-          min={objetivo.kcal_min}
-          max={objetivo.kcal_max}
-        />
-      </section>
-
-      <section className="mt-8 flex flex-col gap-3.5">
+      <section className="-mt-5 flex gap-2.5 px-5">
         <Macro nombre="Proteína" actual={suma("prot_g")} objetivo={objetivo.prot_g}
-               color="var(--color-pino)" />
-        <Macro nombre="Carbohidratos" actual={suma("carb_g")} objetivo={objetivo.carb_g}
-               color="var(--color-azulejo)" />
+               color="var(--color-pino)" fondo="var(--color-pino-claro)" />
+        <Macro nombre="Carbos" actual={suma("carb_g")} objetivo={objetivo.carb_g}
+               color="var(--color-azulejo)" fondo="var(--color-azulejo-claro)" />
         <Macro nombre="Grasas" actual={suma("grasa_g")} objetivo={objetivo.grasa_g}
-               color="var(--color-ambar)" />
+               color="var(--color-naranja)" fondo="var(--color-naranja-claro)" />
       </section>
 
       {platosHoy.length > 0 && (
-        <section className="mt-8 flex flex-col gap-2.5">
-          {platosHoy.map((p) => (
-            <PlatoDeHoy key={p.momento} fecha={hoy} {...p} />
-          ))}
+        <section className="mt-7 px-5">
+          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-tenue)]">
+            Hoy en el menú
+          </h2>
+          <div className="mt-2.5 flex flex-col gap-2.5">
+            {platosHoy.map((p) => (
+              <PlatoDeHoy key={p.momento} fecha={hoy} {...p} />
+            ))}
+          </div>
         </section>
       )}
 
-      <section className="mt-9 flex flex-col gap-3">
+      <section className="mt-7 flex flex-col gap-3 px-5">
+        {filas.length > 0 && (
+          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-tenue)]">
+            Lo que llevas hoy
+          </h2>
+        )}
+
         {MOMENTOS.map((m) => {
           const delMomento = filas.filter((r) => r.momento === m);
           if (!delMomento.length) return null;
           const kcal = delMomento.reduce((s, r) => s + Number(r.kcal), 0);
 
           return (
-            <article key={m} className="rounded-xl border border-[var(--color-linea)] bg-[var(--color-loza)] px-4 py-3">
+            <article key={m} className="tarjeta px-4 py-3">
               <div className="flex items-baseline justify-between">
-                <h2 className="text-[14px] font-medium capitalize">{m}</h2>
-                <span className="cifra text-[13px] text-[var(--color-tenue)]">
+                <h3 className="text-[14px] font-semibold capitalize">{m}</h3>
+                <span className="cifra rounded-full bg-[var(--color-pino-claro)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-pino)]">
                   {Math.round(kcal)} kcal
                 </span>
               </div>
@@ -183,9 +194,18 @@ export default async function Hoy() {
         })}
 
         {!filas.length && (
-          <p className="py-4 text-center text-[14px] text-[var(--color-tenue)]">
-            Todavía no has apuntado nada hoy.
-          </p>
+          <div className="tarjeta px-5 py-7 text-center">
+            <div
+              aria-hidden
+              className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[var(--color-azafran-claro)] text-[22px]"
+            >
+              🍳
+            </div>
+            <p className="mt-3 text-[14px]">Todavía no has apuntado nada hoy.</p>
+            <p className="mt-1 text-[12.5px] text-[var(--color-tenue)]">
+              Empieza por el desayuno, que es el que menos cuesta.
+            </p>
+          </div>
         )}
 
         {habituales.length > 0 && <Habituales lista={habituales} />}

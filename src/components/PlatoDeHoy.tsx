@@ -2,29 +2,30 @@
 
 import { useState, useTransition } from "react";
 import { apuntarDelMenu } from "@/app/hoy/actions";
+import { Miniatura } from "@/components/Miniatura";
 import type { Momento } from "@/lib/objetivo";
 
 interface Props {
   fecha: string;
   momento: Momento;
   nombre: string;
+  foto: string | null;
   racion: { gramos: number; kcal: number };
   yaApuntado: boolean;
 }
 
-export function PlatoDeHoy({ fecha, momento, nombre, racion, yaApuntado }: Props) {
+export function PlatoDeHoy({ fecha, momento, nombre, foto, racion, yaApuntado }: Props) {
   const [pendiente, empezar] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   return (
     <article
-      className={`rounded-xl border px-4 py-3.5 ${
-        yaApuntado
-          ? "border-[var(--color-linea)] bg-[var(--color-loza)]"
-          : "border-[var(--color-pino)] bg-[var(--color-pino-claro)]"
+      className={`tarjeta px-3.5 py-3 ${
+        yaApuntado ? "opacity-70" : "ring-2 ring-[var(--color-lima)]"
       }`}
     >
       <div className="flex items-center gap-3">
+        <Miniatura nombre={nombre} foto={foto} />
         <div className="flex-1">
           <div className="text-[11px] uppercase tracking-wider text-[var(--color-tenue)]">
             Hoy de {momento}

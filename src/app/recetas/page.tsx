@@ -3,10 +3,12 @@ import { redirect } from "next/navigation";
 import { clienteServidor } from "@/lib/supabase/server";
 import { Navegacion } from "@/components/Navegacion";
 import { BorrarReceta } from "@/components/BorrarReceta";
+import { Miniatura } from "@/components/Miniatura";
 
 interface RecetaFila {
   id: string;
   nombre: string;
+  foto_url: string | null;
   raciones_base: number;
   minutos: number | null;
   receta_ingredientes: { gramos: number; alimentos: { kcal_100: number } | null }[];
@@ -19,7 +21,7 @@ export default async function Recetas() {
 
   const { data: recetas } = await supabase
     .from("recetas")
-    .select("id, nombre, raciones_base, minutos, receta_ingredientes(gramos, alimentos(kcal_100))")
+    .select("id, nombre, foto_url, raciones_base, minutos, receta_ingredientes(gramos, alimentos(kcal_100))")
     .order("nombre")
     .returns<RecetaFila[]>();
 
@@ -38,14 +40,14 @@ export default async function Recetas() {
         </div>
         <Link
           href="/recetas/nueva"
-          className="shrink-0 rounded-lg bg-[var(--color-pino)] px-3.5 py-2.5 text-[13px] font-medium text-white"
+          className="shrink-0 rounded-full bg-[var(--color-naranja)] px-4 py-2.5 text-[13px] font-semibold text-white shadow-[var(--shadow-tarjeta)]"
         >
-          Añadir
+          + Añadir
         </Link>
       </div>
 
       {!lista.length && (
-        <div className="mt-10 rounded-xl border border-dashed border-[var(--color-linea)] px-5 py-8 text-center">
+        <div className="tarjeta mt-10 px-5 py-8 text-center">
           <p className="text-[14px] leading-relaxed">
             Aquí van las recetas que de verdad cocináis.
           </p>
@@ -63,12 +65,10 @@ export default async function Recetas() {
             0
           );
           return (
-            <article
-              key={r.id}
-              className="flex items-center gap-3 rounded-xl border border-[var(--color-linea)] bg-[var(--color-loza)] px-4 py-3.5"
-            >
+            <article key={r.id} className="tarjeta flex items-center gap-3 px-3.5 py-3">
+              <Miniatura nombre={r.nombre} foto={r.foto_url} />
               <Link href={`/recetas/${r.id}`} className="flex-1">
-                <h2 className="text-[14px] font-medium">{r.nombre}</h2>
+                <h2 className="text-[14px] font-semibold">{r.nombre}</h2>
                 <p className="mt-0.5 text-[12px] text-[var(--color-tenue)]">
                   <span className="cifra">{Math.round(kcal / r.raciones_base)}</span> kcal
                   por ración · para {r.raciones_base}

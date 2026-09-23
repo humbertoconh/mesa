@@ -46,11 +46,12 @@ export default async function Compra({
   const hechos = lista.filter((p) => p.comprado).length;
 
   return (
-    <main className="mx-auto max-w-md px-5 pb-28 pt-10">
-      <h1 className="font-[family-name:var(--font-display)] text-[26px] font-semibold leading-none">
+    <main className="mx-auto max-w-md pb-28">
+      <header className="cabecera">
+      <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-none">
         La compra
       </h1>
-      <p className="mt-1.5 text-[13px] text-[var(--color-tenue)]">
+      <p className="mt-1.5 text-[12.5px] opacity-80">
         Semana del {nombreDia(lunes)}
         {lista.length > 0 && (
           <>
@@ -61,9 +62,10 @@ export default async function Compra({
           </>
         )}
       </p>
+      </header>
 
       {!lista.length ? (
-        <div className="mt-10 rounded-xl border border-dashed border-[var(--color-linea)] px-5 py-8 text-center">
+        <div className="tarjeta mx-5 mt-8 px-5 py-8 text-center">
           <p className="text-[14px] leading-relaxed">
             La lista se hace sola con los platos del menú.
           </p>
@@ -76,10 +78,10 @@ export default async function Compra({
         </div>
       ) : (
         <>
-          <section className="mt-6 flex flex-col gap-5">
+          <section className="mt-6 flex flex-col gap-4 px-5">
             {[...porSeccion.entries()].map(([seccion, filas]) => (
-              <div key={seccion}>
-                <h2 className="text-[11px] font-medium uppercase tracking-wider text-[var(--color-pino)]">
+              <div key={seccion} className="tarjeta px-4 py-3">
+                <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-naranja)]">
                   {SECCIONES[seccion] ?? seccion}
                 </h2>
                 <ul className="mt-1 divide-y divide-[var(--color-linea)]">
@@ -91,11 +93,11 @@ export default async function Compra({
             ))}
           </section>
 
-          <div className="mt-7">
+          <div className="mt-6 px-5">
             <AnadirProducto semana={lunes} />
           </div>
 
-          <p className="mt-5 text-[12px] leading-relaxed text-[var(--color-tenue)]">
+          <p className="mt-5 px-5 text-[12px] leading-relaxed text-[var(--color-tenue)]">
             Las cantidades ya están sumadas de todos los platos de la semana y
             multiplicadas por los que sois en casa. Si rehaces la lista desde el
             menú, lo que ya esté marcado se queda marcado.

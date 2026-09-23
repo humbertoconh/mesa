@@ -25,7 +25,7 @@ export function BotonSemana({ dias, vacia }: { dias: string[]; vacia: boolean })
         disabled={cargando}
         className={`w-full rounded-xl px-4 py-3.5 text-[15px] font-medium disabled:opacity-50 ${
           vacia
-            ? "bg-[var(--color-pino)] text-white"
+            ? "bg-[var(--color-naranja)] text-white shadow-[var(--shadow-tarjeta)]"
             : "border border-[var(--color-pino)] text-[var(--color-pino)]"
         }`}
       >

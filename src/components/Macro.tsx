@@ -3,20 +3,27 @@ interface Props {
   actual: number;
   objetivo: number;
   color: string;
+  fondo: string;
 }
 
-export function Macro({ nombre, actual, objetivo, color }: Props) {
+export function Macro({ nombre, actual, objetivo, color, fondo }: Props) {
   const pct = objetivo > 0 ? Math.min((actual / objetivo) * 100, 100) : 0;
 
   return (
-    <div>
-      <div className="flex items-baseline justify-between">
-        <span className="text-[13px]">{nombre}</span>
-        <span className="cifra text-[12px] text-[var(--color-tenue)]">
-          {Math.round(actual)} / {objetivo} g
+    <div className="tarjeta flex-1 px-3 py-3">
+      <div className="text-[11px] font-medium" style={{ color }}>
+        {nombre}
+      </div>
+      <div className="cifra mt-1 text-[17px] font-semibold leading-none">
+        {Math.round(actual)}
+        <span className="text-[11px] font-normal text-[var(--color-tenue)]">
+          {" "}/ {objetivo} g
         </span>
       </div>
-      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--color-pino-claro)]">
+      <div
+        className="mt-2 h-1.5 overflow-hidden rounded-full"
+        style={{ background: fondo }}
+      >
         <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
       </div>
     </div>

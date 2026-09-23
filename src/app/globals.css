@@ -1,21 +1,31 @@
 @import "tailwindcss";
 
 @theme {
-  /* Cocina de azulejo: blanco hueso, verde pino, azul de loza. */
-  --color-hueso: #fbfaf7;
+  /* Mercado de Valencia: crema cálida, verde de puesto de verdura,
+     naranja, azafrán y azul de azulejo. */
+  --color-hueso: #fff8ef;
   --color-loza: #ffffff;
-  --color-tinta: #14231c;
-  --color-tenue: #6d7a72;
-  --color-linea: #e3e0d8;
+  --color-tinta: #17241d;
+  --color-tenue: #7a8079;
+  --color-linea: #ece3d6;
 
-  --color-pino: #1f5d45;
-  --color-pino-claro: #e8f0ea;
-  --color-azulejo: #2c6e9b;
-  --color-ambar: #b5791a;
-  --color-alarma: #a03232;
+  --color-pino: #1f6a4c;
+  --color-pino-claro: #e4f2e8;
+  --color-lima: #6fbf73;
+
+  --color-naranja: #f2762e;
+  --color-naranja-claro: #ffeade;
+  --color-azafran: #eaa316;
+  --color-azafran-claro: #fff2d6;
+  --color-azulejo: #2f7fa8;
+  --color-azulejo-claro: #e2f0f7;
+  --color-alarma: #c0392b;
 
   --font-display: var(--fuente-display), Georgia, serif;
   --font-sans: var(--fuente-ui), system-ui, sans-serif;
+
+  --shadow-tarjeta: 0 1px 2px rgba(23, 36, 29, 0.04), 0 6px 16px -8px rgba(23, 36, 29, 0.12);
+  --shadow-alta: 0 2px 4px rgba(23, 36, 29, 0.06), 0 14px 30px -12px rgba(23, 36, 29, 0.22);
 }
 
 html {
@@ -26,20 +36,41 @@ html {
 
 body {
   font-family: var(--font-sans);
-  /* Deja sitio a la barra de abajo del móvil. */
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Las cifras en columna no deben bailar al cambiar. */
+/* Cifras que no bailan al cambiar de valor. */
 .cifra {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
 
+/* Tarjeta base: se repite en toda la app. */
+.tarjeta {
+  background: var(--color-loza);
+  border-radius: 18px;
+  box-shadow: var(--shadow-tarjeta);
+}
+
+/* Cabecera de pantalla con el verde de la casa. */
+.cabecera {
+  background: linear-gradient(150deg, #1f6a4c 0%, #2a8159 55%, #3d9464 100%);
+  color: #fff;
+  border-radius: 0 0 26px 26px;
+  padding: 2.5rem 1.25rem 1.75rem;
+  padding-top: calc(2.5rem + env(safe-area-inset-top, 0px));
+}
+
+/* Relleno de color para las miniaturas sin foto: el tono sale del
+   nombre del plato, así cada receta tiene el suyo y no cambia. */
+.mancha {
+  background-image: linear-gradient(140deg, var(--m1), var(--m2));
+}
+
 :focus-visible {
   outline: 2px solid var(--color-pino);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 @media (prefers-reduced-motion: reduce) {

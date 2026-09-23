@@ -1,0 +1,95 @@
+"use client";
+
+import { useRef, useState } from "react";
+import { clienteNavegador } from "@/lib/supabase/client";
+import { cuadrada } from "@/lib/imagen";
+import { guardarFoto } from "@/app/recetas/actions";
+
+interface Props {
+  recetaId: string;
+  hogarId: string;
+  foto: string | null;
+  nombre: string;
+}
+
+export function FotoReceta({ recetaId, hogarId, foto, nombre }: Props) {
+  const entrada = useRef<HTMLInputElement>(null);
+  const [actual, setActual] = useState(foto);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function subir(archivo: File) {
+    setCargando(true);
+    setError(null);
+    try {
+      const blob = await cuadrada(archivo);
+      const ruta = `${hogarId}/${recetaId}-${Date.now()}.jpg`;
+
+      const supabase = clienteNavegador();
+      const { error: e1 } = await supabase.storage
+        .from("recetas")
+        .upload(ruta, blob, { contentType: "image/jpeg", upsert: true });
+      if (e1) throw new Error(e1.message);
+
+      const { data } = supabase.storage.from("recetas").getPublicUrl(ruta);
+      const r = await guardarFoto(recetaId, data.publicUrl);
+      if (r?.error) throw new Error(r.error);
+
+      setActual(data.publicUrl);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se ha podido subir.");
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  return (
+    <div>
+      <input
+        ref={entrada}
+        type="file"
+        accept="image/*"
+        className="sr-only"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) subir(f);
+          e.target.value = "";
+        }}
+      />
+
+      <button
+        onClick={() => entrada.current?.click()}
+        disabled={cargando}
+        className="relative block w-full overflow-hidden rounded-[18px] disabled:opacity-60"
+      >
+        {actual ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={actual} alt={nombre} className="h-[190px] w-full object-cover" />
+            <span className="absolute bottom-2 right-2 rounded-full bg-black/55 px-3 py-1.5 text-[11px] font-medium text-white">
+              {cargando ? "Subiendo…" : "Cambiar foto"}
+            </span>
+          </>
+        ) : (
+          <span className="flex h-[120px] w-full flex-col items-center justify-center gap-2 rounded-[18px] border border-dashed border-[var(--color-linea)] bg-[var(--color-loza)] text-[var(--color-tenue)]">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 strokeWidth="1.5">
+              <rect x="2.5" y="6" width="19" height="14" rx="3" />
+              <circle cx="12" cy="13" r="4" />
+              <path d="M8.5 6l1.5-2.5h4L15.5 6" />
+            </svg>
+            <span className="text-[13px]">
+              {cargando ? "Subiendo…" : "Poner una foto del plato"}
+            </span>
+          </span>
+        )}
+      </button>
+
+      {error && (
+        <p role="alert" className="mt-2 text-[13px] text-[var(--color-alarma)]">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
