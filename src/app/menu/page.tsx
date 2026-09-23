@@ -84,6 +84,7 @@ export default async function Menu({
     );
 
     return {
+      id: r.id,
       nombre: r.nombre,
       racion: kcalDia
         ? calcularRacion(gramos, kcal, r.raciones_base, kcalDia, momento)

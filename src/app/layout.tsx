@@ -16,6 +16,17 @@ const ui = Inter({
 export const metadata: Metadata = {
   title: "Mesa",
   description: "Lo que come la casa, contado entre todos.",
+  // Para que en el iPhone se abra sin la barra del navegador
+  // al añadirla a la pantalla de inicio.
+  appleWebApp: {
+    capable: true,
+    title: "Mesa",
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 export const viewport: Viewport = {

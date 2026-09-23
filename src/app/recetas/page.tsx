@@ -67,14 +67,14 @@ export default async function Recetas() {
               key={r.id}
               className="flex items-center gap-3 rounded-xl border border-[var(--color-linea)] bg-[var(--color-loza)] px-4 py-3.5"
             >
-              <div className="flex-1">
+              <Link href={`/recetas/${r.id}`} className="flex-1">
                 <h2 className="text-[14px] font-medium">{r.nombre}</h2>
                 <p className="mt-0.5 text-[12px] text-[var(--color-tenue)]">
                   <span className="cifra">{Math.round(kcal / r.raciones_base)}</span> kcal
                   por ración · para {r.raciones_base}
                   {r.minutos ? ` · ${r.minutos} min` : ""}
                 </p>
-              </div>
+              </Link>
               <BorrarReceta id={r.id} nombre={r.nombre} />
             </article>
           );

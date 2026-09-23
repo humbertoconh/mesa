@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { ponerPlato, quitarPlato } from "@/app/menu/actions";
 
@@ -7,7 +8,11 @@ interface Props {
   fecha: string;
   momento: string;
   recetas: { id: string; nombre: string }[];
-  puesto: { nombre: string; racion: { gramos: number; kcal: number } | null } | null;
+  puesto: {
+    id: string;
+    nombre: string;
+    racion: { gramos: number; kcal: number } | null;
+  } | null;
 }
 
 export function SelectorPlato({ fecha, momento, recetas, puesto }: Props) {
@@ -17,10 +22,7 @@ export function SelectorPlato({ fecha, momento, recetas, puesto }: Props) {
   if (puesto && !abierto) {
     return (
       <div className={`flex items-center gap-2 ${pendiente ? "opacity-40" : ""}`}>
-        <button
-          onClick={() => setAbierto(true)}
-          className="flex-1 text-left text-[14px]"
-        >
+        <Link href={`/recetas/${puesto.id}`} className="flex-1 text-[14px]">
           {puesto.nombre}
           {puesto.racion && (
             <span className="mt-0.5 block text-[11px] text-[var(--color-tenue)]">
@@ -30,6 +32,13 @@ export function SelectorPlato({ fecha, momento, recetas, puesto }: Props) {
               </span>
             </span>
           )}
+        </Link>
+        <button
+          onClick={() => setAbierto(true)}
+          aria-label="Cambiar plato"
+          className="shrink-0 px-1 text-[13px] text-[var(--color-tenue)]"
+        >
+          cambiar
         </button>
         <button
           onClick={() => empezar(() => { quitarPlato(fecha, momento); })}
