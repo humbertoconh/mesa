@@ -23,7 +23,7 @@ export interface RecetaIA {
   ingredientes: IngredienteIA[];
 }
 
-export async function guardarReceta(receta: RecetaIA) {
+export async function guardarReceta(receta: RecetaIA, compartir = false) {
   const supabase = await clienteServidor();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/entrar");
@@ -35,10 +35,23 @@ export async function guardarReceta(receta: RecetaIA) {
     .maybeSingle();
   if (!yo) return { error: "No estás en ninguna casa." };
 
+  // Si se guarda ya compartida, hace falta el nombre del autor.
+  let autor: string | null = null;
+  if (compartir) {
+    const { data: quien } = await supabase
+      .from("miembros")
+      .select("nombre")
+      .eq("id", user.id)
+      .maybeSingle();
+    autor = quien?.nombre ?? null;
+  }
+
   const { data: nueva, error: e1 } = await supabase
     .from("recetas")
     .insert({
       hogar_id: yo.hogar_id,
+      publica: compartir,
+      autor,
       nombre: receta.nombre,
       raciones_base: receta.raciones,
       minutos: receta.minutos,

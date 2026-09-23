@@ -45,8 +45,27 @@ export default async function Recetas() {
       </div>
 
       <Link
-        href="/recetas/compartidas"
+        href="/recetas/importar"
         className="tarjeta mt-5 flex items-center gap-3 px-4 py-3.5"
+      >
+        <span
+          aria-hidden
+          className="grid h-10 w-10 place-items-center rounded-full bg-[var(--color-naranja-claro)] text-[18px]"
+        >
+          📋
+        </span>
+        <span className="flex-1">
+          <span className="block text-[14px] font-semibold">Traer recetas en lote</span>
+          <span className="block text-[12px] text-[var(--color-tenue)]">
+            Pega una lista de platos y se escriben solas.
+          </span>
+        </span>
+        <span aria-hidden className="text-[var(--color-tenue)]">→</span>
+      </Link>
+
+      <Link
+        href="/recetas/compartidas"
+        className="tarjeta mt-2.5 flex items-center gap-3 px-4 py-3.5"
       >
         <span
           aria-hidden
