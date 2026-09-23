@@ -1,11 +1,14 @@
 import { redirect } from "next/navigation";
 import { clienteServidor } from "@/lib/supabase/server";
-import { fechaLarga, hoyISO, MOMENTOS } from "@/lib/objetivo";
+import { fechaLarga, hoyISO, MOMENTOS, type Momento } from "@/lib/objetivo";
 import { Anillo } from "@/components/Anillo";
 import { Macro } from "@/components/Macro";
 import { AnadirComida } from "@/components/AnadirComida";
 import { FilaRegistro } from "@/components/Registro";
 import { Navegacion } from "@/components/Navegacion";
+import { PlatoDeHoy } from "@/components/PlatoDeHoy";
+import { Habituales, type Habitual } from "@/components/Habituales";
+import { calcularRacion } from "@/lib/racion";
 import type { ObjetivoFila, Registro } from "@/lib/tipos";
 
 export default async function Hoy() {
@@ -45,6 +48,78 @@ export default async function Hoy() {
     filas.reduce((s, r) => s + Number(r[c] ?? 0), 0);
 
   const fecha = fechaLarga();
+  const hoy = hoyISO();
+
+  // Lo que toca hoy según el menú de la casa, con mi ración calculada.
+  const { data: puestos } = await supabase
+    .from("menu_semanal")
+    .select("momento, recetas(id, nombre, raciones_base, receta_ingredientes(gramos, alimentos(kcal_100)))")
+    .eq("fecha", hoy);
+
+  const kcalDia = (objetivo.kcal_min + objetivo.kcal_max) / 2;
+
+  const platosHoy = (puestos ?? []).flatMap((p) => {
+    const fila = p as unknown as {
+      momento: Momento;
+      recetas: {
+        id: string;
+        nombre: string;
+        raciones_base: number;
+        receta_ingredientes: { gramos: number; alimentos: { kcal_100: number } | null }[];
+      } | null;
+    };
+    const r = fila.recetas;
+    if (!r) return [];
+
+    const gramos = r.receta_ingredientes.reduce((s, i) => s + Number(i.gramos), 0);
+    const kcal = r.receta_ingredientes.reduce(
+      (s, i) => s + (Number(i.gramos) * Number(i.alimentos?.kcal_100 ?? 0)) / 100,
+      0
+    );
+
+    return [{
+      momento: fila.momento,
+      nombre: r.nombre,
+      racion: calcularRacion(gramos, kcal, r.raciones_base, kcalDia, fila.momento),
+      yaApuntado: filas.some((f) => f.momento === fila.momento && f.descripcion === r.nombre),
+    }];
+  });
+
+  // Lo que más repites: sirve para apuntarlo de un toque.
+  const { data: historico } = await supabase
+    .from("registro_comidas")
+    .select("descripcion, momento, gramos, kcal, prot_g, carb_g, grasa_g")
+    .eq("miembro_id", user.id)
+    .neq("fecha", hoy)
+    .gte("fecha", new Date(Date.now() - 60 * 86400000).toISOString().slice(0, 10))
+    .order("creado_en", { ascending: false })
+    .limit(300);
+
+  const cuenta = new Map<string, Habitual>();
+  (historico ?? []).forEach((r) => {
+    const nombre = r.descripcion;
+    if (!nombre) return;
+    const previo = cuenta.get(nombre);
+    if (previo) {
+      previo.veces++;
+      return;
+    }
+    cuenta.set(nombre, {
+      nombre,
+      momento: r.momento,
+      gramos: Number(r.gramos ?? 0),
+      kcal: Number(r.kcal),
+      prot_g: Number(r.prot_g),
+      carb_g: Number(r.carb_g),
+      grasa_g: Number(r.grasa_g),
+      veces: 1,
+    });
+  });
+
+  const habituales = [...cuenta.values()]
+    .filter((h) => h.veces >= 2)
+    .sort((a, b) => b.veces - a.veces)
+    .slice(0, 6);
 
   return (
     <main className="mx-auto max-w-md px-5 pb-28 pt-10">
@@ -76,6 +151,14 @@ export default async function Hoy() {
                color="var(--color-ambar)" />
       </section>
 
+      {platosHoy.length > 0 && (
+        <section className="mt-8 flex flex-col gap-2.5">
+          {platosHoy.map((p) => (
+            <PlatoDeHoy key={p.momento} fecha={hoy} {...p} />
+          ))}
+        </section>
+      )}
+
       <section className="mt-9 flex flex-col gap-3">
         {MOMENTOS.map((m) => {
           const delMomento = filas.filter((r) => r.momento === m);
@@ -104,6 +187,8 @@ export default async function Hoy() {
             Todavía no has apuntado nada hoy.
           </p>
         )}
+
+        {habituales.length > 0 && <Habituales lista={habituales} />}
 
         <AnadirComida />
       </section>
