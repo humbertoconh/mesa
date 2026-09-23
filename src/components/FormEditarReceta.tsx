@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { actualizarReceta } from "@/app/recetas/actions";
+import {
+  DIFICULTADES, ETIQUETAS, REGIONES, TEMPORADAS, TIPOS,
+} from "@/lib/clasificacion";
 
 interface Ing {
   id: string;
@@ -17,6 +20,11 @@ interface Props {
   raciones: number;
   minutos: number | null;
   pasos: string[];
+  region: string | null;
+  tipo: string | null;
+  temporada: string | null;
+  dificultad: string | null;
+  etiquetas: string[];
   ingredientes: Ing[];
 }
 
@@ -26,6 +34,11 @@ export function FormEditarReceta(props: Props) {
   const [raciones, setRaciones] = useState(props.raciones);
   const [minutos, setMinutos] = useState(props.minutos ?? 0);
   const [pasos, setPasos] = useState(props.pasos);
+  const [region, setRegion] = useState(props.region ?? "");
+  const [tipo, setTipo] = useState(props.tipo ?? "");
+  const [temporada, setTemporada] = useState(props.temporada ?? "todo el año");
+  const [dificultad, setDificultad] = useState(props.dificultad ?? "");
+  const [etiquetas, setEtiquetas] = useState<string[]>(props.etiquetas ?? []);
   const [ingredientes, setIngredientes] = useState(props.ingredientes);
   const [quitados, setQuitados] = useState<string[]>([]);
   const [cargando, setCargando] = useState(false);
@@ -39,6 +52,11 @@ export function FormEditarReceta(props: Props) {
       raciones_base: raciones,
       minutos: minutos || null,
       pasos: pasos.map((p) => p.trim()).filter(Boolean),
+      region: region || null,
+      tipo: tipo || null,
+      temporada: temporada || null,
+      dificultad: dificultad || null,
+      etiquetas,
       ingredientes: ingredientes.map(({ id, gramos }) => ({ id, gramos })),
       quitados,
     });
@@ -77,6 +95,99 @@ export function FormEditarReceta(props: Props) {
                  className="cifra w-16 rounded-lg border border-[var(--color-linea)] px-2.5 py-2 text-center" />
           minutos
         </label>
+      </div>
+
+      <h2 className="mt-6 text-[13px] font-medium">Clasificación</h2>
+      <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-tenue)]">
+        Sirve para buscar después. No hace falta rellenarlo todo.
+      </p>
+
+      <div className="mt-3 flex flex-col gap-2.5">
+        <label className="flex flex-col gap-1">
+          <span className="text-[12px] text-[var(--color-tenue)]">De dónde es</span>
+          <select
+            value={region}
+            onChange={(e) => setRegion(e.target.value)}
+            className="rounded-lg border border-[var(--color-linea)] bg-[var(--color-loza)] px-3 py-2.5 text-[14px]"
+          >
+            <option value="">Sin especificar</option>
+            {REGIONES.map((r) => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+        </label>
+
+        <div className="grid grid-cols-2 gap-2.5">
+          <label className="flex flex-col gap-1">
+            <span className="text-[12px] text-[var(--color-tenue)]">Qué es</span>
+            <select
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value)}
+              className="rounded-lg border border-[var(--color-linea)] bg-[var(--color-loza)] px-3 py-2.5 text-[14px]"
+            >
+              <option value="">Sin especificar</option>
+              {TIPOS.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-1">
+            <span className="text-[12px] text-[var(--color-tenue)]">Cuándo apetece</span>
+            <select
+              value={temporada}
+              onChange={(e) => setTemporada(e.target.value)}
+              className="rounded-lg border border-[var(--color-linea)] bg-[var(--color-loza)] px-3 py-2.5 text-[14px]"
+            >
+              {TEMPORADAS.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <label className="flex flex-col gap-1">
+          <span className="text-[12px] text-[var(--color-tenue)]">Cuánta mano pide</span>
+          <select
+            value={dificultad}
+            onChange={(e) => setDificultad(e.target.value)}
+            className="rounded-lg border border-[var(--color-linea)] bg-[var(--color-loza)] px-3 py-2.5 text-[14px]"
+          >
+            <option value="">Sin especificar</option>
+            {DIFICULTADES.map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <h2 className="mt-6 text-[13px] font-medium">Etiquetas</h2>
+      <p className="mt-1 text-[12px] text-[var(--color-tenue)]">
+        Toca para poner o quitar. {etiquetas.length} puestas.
+      </p>
+      <div className="mt-2.5 flex flex-wrap gap-1.5">
+        {ETIQUETAS.map((e) => {
+          const puesta = etiquetas.includes(e);
+          return (
+            <button
+              key={e}
+              onClick={() =>
+                setEtiquetas(
+                  puesta ? etiquetas.filter((x) => x !== e) : [...etiquetas, e]
+                )
+              }
+              aria-pressed={puesta}
+              className="rounded-full px-3 py-1.5 text-[12px] font-medium"
+              style={
+                puesta
+                  ? { background: "var(--color-azafran)", color: "#fff" }
+                  : { background: "var(--color-azafran-claro)", color: "#7a5410" }
+              }
+            >
+              {e}
+            </button>
+          );
+        })}
       </div>
 
       <h2 className="mt-6 text-[13px] font-medium">Ingredientes</h2>

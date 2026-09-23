@@ -122,6 +122,11 @@ export async function actualizarReceta(
     raciones_base: number;
     minutos: number | null;
     pasos: string[];
+    region: string | null;
+    tipo: string | null;
+    temporada: string | null;
+    dificultad: string | null;
+    etiquetas: string[];
     ingredientes: IngredienteEditado[];
     quitados: string[];
   }
@@ -137,6 +142,11 @@ export async function actualizarReceta(
       raciones_base: datos.raciones_base,
       minutos: datos.minutos,
       pasos: datos.pasos,
+      region: datos.region,
+      tipo: datos.tipo,
+      temporada: datos.temporada,
+      dificultad: datos.dificultad,
+      etiquetas: datos.etiquetas,
     })
     .eq("id", id);
   if (e1) return { error: e1.message };
