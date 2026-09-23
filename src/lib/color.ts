@@ -24,3 +24,34 @@ export function manchaDe(texto: string): { "--m1": string; "--m2": string } {
 export function inicial(texto: string): string {
   return texto.trim().charAt(0).toUpperCase() || "?";
 }
+
+/**
+ * Color del anillo según lo cerca que estés del objetivo.
+ *
+ * Rojo cuando vas muy corto, verde al entrar en el rango bueno, y de
+ * vuelta al rojo si te pasas. En tonos pastel, que esto no es una
+ * alarma de incendios.
+ */
+export function colorObjetivo(consumidas: number, min: number, max: number) {
+  let t: number; // 0 = lejos, 1 = en el sitio
+
+  if (consumidas <= min) {
+    t = min > 0 ? Math.min(consumidas / min, 1) : 1;
+  } else if (consumidas <= max) {
+    t = 1;
+  } else {
+    // Un 30% por encima ya es rojo del todo.
+    const exceso = (consumidas - max) / max;
+    t = Math.max(0, 1 - exceso / 0.3);
+  }
+
+  // Suavizamos el arranque: los primeros bocados del día no tienen por
+  // qué pintarse de rojo intenso.
+  const suave = Math.pow(t, 0.75);
+  const tono = 6 + suave * 134; // 6 = rojo, 140 = verde
+
+  return {
+    claro: `hsl(${tono} 65% 72%)`,
+    oscuro: `hsl(${tono} 52% 52%)`,
+  };
+}

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { clienteServidor } from "@/lib/supabase/server";
+import { avisar } from "@/lib/correo";
 
 export async function crearHogar(_estado: string | null, datos: FormData) {
   const supabase = await clienteServidor();
@@ -17,6 +18,16 @@ export async function crearHogar(_estado: string | null, datos: FormData) {
   });
 
   if (error) return error.message;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  await avisar(
+    `Casa nueva pendiente: ${nombre}`,
+    `<strong>${miNombre}</strong> (${user?.email ?? "sin correo"}) ha creado la
+     casa <strong>${nombre}</strong> y está esperando tu aprobación.
+     Hasta que no le des el visto bueno, no puede usar la app.`,
+    "/admin"
+  );
+
   revalidatePath("/", "layout");
   // La casa nace pendiente: la raíz decide si vas al perfil o a esperar.
   redirect("/");
@@ -35,6 +46,14 @@ export async function unirse(_estado: string | null, datos: FormData) {
   });
 
   if (error) return error.message;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  await avisar(
+    `${miNombre} ha entrado en una casa`,
+    `<strong>${miNombre}</strong> (${user?.email ?? "sin correo"}) ha entrado
+     con el código <strong>${codigo.toUpperCase()}</strong>.`,
+    "/admin"
+  );
   revalidatePath("/", "layout");
   redirect("/perfil");
 }
