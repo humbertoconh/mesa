@@ -239,24 +239,32 @@ export async function subirFoto(recetaId: string, datos: FormData) {
 
   const ruta = `${yo.hogar_id}/${recetaId}-${Date.now()}.jpg`;
 
-  // Subimos con fetch en vez de con el cliente de Supabase porque así
-  // controlamos que el token del usuario viaje en la cabecera. Sin él,
-  // Storage nos trata como visitante anónimo y la política de
-  // 'authenticated' rechaza la subida.
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.access_token) {
-    console.error("FOTO: sin token de sesión");
-    return { error: "Tu sesión ha caducado. Vuelve a entrar." };
+  // La subida la hace el servidor con la clave de servicio.
+  //
+  // Esa clave se salta el RLS, así que la autorización la hemos hecho
+  // nosotros unas líneas más arriba: hay sesión, el usuario pertenece a
+  // una casa, y el archivo se guarda dentro de la carpeta de SU casa.
+  // La clave vive sólo en el servidor y nunca sale de aquí.
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const servicio = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  let token = servicio;
+  if (!token) {
+    // Sin clave de servicio, se intenta con la sesión del usuario.
+    const { data: { session } } = await supabase.auth.getSession();
+    token = session?.access_token;
+    console.log("FOTO: sin clave de servicio, uso la sesión");
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const clave = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
+  if (!token) {
+    return { error: "Falta configurar la clave del servidor." };
+  }
 
   const subida = await fetch(`${url}/storage/v1/object/recetas/${ruta}`, {
     method: "POST",
     headers: {
-      authorization: `Bearer ${session.access_token}`,
-      apikey: clave,
+      authorization: `Bearer ${token}`,
+      apikey: token,
       "content-type": "image/jpeg",
       "x-upsert": "true",
     },
