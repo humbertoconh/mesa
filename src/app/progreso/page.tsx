@@ -5,6 +5,7 @@ import { Navegacion } from "@/components/Navegacion";
 import { ApuntarPeso } from "@/components/ApuntarPeso";
 import { GraficaPeso } from "@/components/GraficaPeso";
 import { Agua } from "@/components/Agua";
+import Link from "next/link";
 
 interface PesoFila {
   fecha: string;
@@ -117,6 +118,24 @@ export default async function Progreso() {
 
       <section className="mt-3 px-5">
         <Agua vasos={agua?.vasos ?? 0} />
+      </section>
+
+      <section className="mt-3 px-5">
+        <Link href="/estadisticas" className="tarjeta flex items-center gap-3 px-4 py-3.5">
+          <span
+            aria-hidden
+            className="grid h-10 w-10 place-items-center rounded-full bg-[var(--color-azulejo-claro)] text-[18px]"
+          >
+            📊
+          </span>
+          <span className="flex-1">
+            <span className="block text-[14px] font-semibold">Cómo va la cosa</span>
+            <span className="block text-[12px] text-[var(--color-tenue)]">
+              La semana y el mes, en calorías y en agua.
+            </span>
+          </span>
+          <span aria-hidden className="text-[var(--color-tenue)]">→</span>
+        </Link>
       </section>
 
       <section className="mt-6 px-5">
