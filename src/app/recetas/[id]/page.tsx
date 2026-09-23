@@ -55,9 +55,17 @@ export default async function FichaReceta({
 
   return (
     <main className="mx-auto max-w-md px-5 pb-28 pt-10">
-      <Link href="/recetas" className="text-[13px] text-[var(--color-tenue)]">
-        ← Recetario
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link href="/recetas" className="text-[13px] text-[var(--color-tenue)]">
+          ← Recetario
+        </Link>
+        <Link
+          href={`/recetas/${receta.id}/editar`}
+          className="text-[13px] text-[var(--color-pino)] underline underline-offset-4"
+        >
+          Editar
+        </Link>
+      </div>
 
       <h1 className="mt-3 font-[family-name:var(--font-display)] text-[26px] font-semibold leading-tight">
         {receta.nombre}

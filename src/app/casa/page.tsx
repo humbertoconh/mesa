@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { clienteServidor } from "@/lib/supabase/server";
 import { Navegacion } from "@/components/Navegacion";
@@ -104,6 +105,18 @@ export default async function Casa() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="mt-8 border-t border-[var(--color-linea)] pt-6">
+        <Link
+          href="/perfil"
+          className="block rounded-xl border border-[var(--color-linea)] bg-[var(--color-loza)] px-4 py-3.5"
+        >
+          <span className="text-[14px] font-medium">Mis datos y mi objetivo</span>
+          <span className="mt-0.5 block text-[12px] text-[var(--color-tenue)]">
+            Altura, actividad, qué buscas. Al cambiarlo se recalcula.
+          </span>
+        </Link>
       </section>
 
       <form action={salir} className="mt-8">

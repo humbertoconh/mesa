@@ -19,9 +19,11 @@ export async function guardarPerfil(_estado: string | null, datos: FormData) {
 
   if (!nacimiento || !altura_cm || !kg) return "Faltan datos.";
 
+  const nombre = String(datos.get("nombre") ?? "").trim();
+
   const { error: e1 } = await supabase
     .from("miembros")
-    .update({ nacimiento, sexo, altura_cm, actividad })
+    .update({ nombre, nacimiento, sexo, altura_cm, actividad })
     .eq("id", user.id);
   if (e1) return e1.message;
 

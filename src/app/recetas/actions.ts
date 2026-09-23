@@ -86,3 +86,56 @@ export async function borrarReceta(id: string) {
   revalidatePath("/menu");
   return { ok: true };
 }
+
+export interface IngredienteEditado {
+  id: string;
+  gramos: number;
+}
+
+export async function actualizarReceta(
+  id: string,
+  datos: {
+    nombre: string;
+    raciones_base: number;
+    minutos: number | null;
+    pasos: string[];
+    ingredientes: IngredienteEditado[];
+    quitados: string[];
+  }
+) {
+  const supabase = await clienteServidor();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/entrar");
+
+  const { error: e1 } = await supabase
+    .from("recetas")
+    .update({
+      nombre: datos.nombre,
+      raciones_base: datos.raciones_base,
+      minutos: datos.minutos,
+      pasos: datos.pasos,
+    })
+    .eq("id", id);
+  if (e1) return { error: e1.message };
+
+  if (datos.quitados.length) {
+    const { error } = await supabase
+      .from("receta_ingredientes")
+      .delete()
+      .in("id", datos.quitados);
+    if (error) return { error: error.message };
+  }
+
+  for (const ing of datos.ingredientes) {
+    const { error } = await supabase
+      .from("receta_ingredientes")
+      .update({ gramos: ing.gramos })
+      .eq("id", ing.id);
+    if (error) return { error: error.message };
+  }
+
+  revalidatePath("/recetas");
+  revalidatePath(`/recetas/${id}`);
+  revalidatePath("/menu");
+  return { ok: true };
+}
