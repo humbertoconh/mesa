@@ -1,18 +1,16 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { clienteNavegador } from "@/lib/supabase/client";
 import { cuadrada } from "@/lib/imagen";
-import { guardarFoto } from "@/app/recetas/actions";
+import { subirFoto } from "@/app/recetas/actions";
 
 interface Props {
   recetaId: string;
-  hogarId: string;
   foto: string | null;
   nombre: string;
 }
 
-export function FotoReceta({ recetaId, hogarId, foto, nombre }: Props) {
+export function FotoReceta({ recetaId, foto, nombre }: Props) {
   const entrada = useRef<HTMLInputElement>(null);
   const [actual, setActual] = useState(foto);
   const [cargando, setCargando] = useState(false);
@@ -22,20 +20,16 @@ export function FotoReceta({ recetaId, hogarId, foto, nombre }: Props) {
     setCargando(true);
     setError(null);
     try {
+      // Se recorta y se reduce aquí, en el móvil: subir 4 MB para
+      // enseñar una miniatura no tiene sentido.
       const blob = await cuadrada(archivo);
-      const ruta = `${hogarId}/${recetaId}-${Date.now()}.jpg`;
 
-      const supabase = clienteNavegador();
-      const { error: e1 } = await supabase.storage
-        .from("recetas")
-        .upload(ruta, blob, { contentType: "image/jpeg", upsert: true });
-      if (e1) throw new Error(e1.message);
+      const datos = new FormData();
+      datos.append("foto", blob, "plato.jpg");
 
-      const { data } = supabase.storage.from("recetas").getPublicUrl(ruta);
-      const r = await guardarFoto(recetaId, data.publicUrl);
+      const r = await subirFoto(recetaId, datos);
       if (r?.error) throw new Error(r.error);
-
-      setActual(data.publicUrl);
+      if (r?.url) setActual(r.url);
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se ha podido subir.");
     } finally {

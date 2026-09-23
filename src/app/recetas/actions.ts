@@ -190,3 +190,52 @@ export async function copiarReceta(id: string) {
   revalidatePath("/menu");
   return { ok: true, id: data as string };
 }
+
+/**
+ * Sube la foto de una receta.
+ *
+ * Va por el servidor a propósito: aquí la sesión viaja en la cookie y
+ * Supabase nos ve como usuario identificado. Desde el navegador la
+ * política de Storage nos tomaba por visitante anónimo.
+ */
+export async function subirFoto(recetaId: string, datos: FormData) {
+  const supabase = await clienteServidor();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/entrar");
+
+  const archivo = datos.get("foto");
+  if (!(archivo instanceof File) || !archivo.size) {
+    return { error: "No ha llegado la foto." };
+  }
+  if (archivo.size > 3_000_000) {
+    return { error: "La foto pesa demasiado." };
+  }
+
+  const { data: yo } = await supabase
+    .from("miembros")
+    .select("hogar_id")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!yo) return { error: "No estás en ninguna casa." };
+
+  const ruta = `${yo.hogar_id}/${recetaId}-${Date.now()}.jpg`;
+
+  const { error: e1 } = await supabase.storage
+    .from("recetas")
+    .upload(ruta, archivo, { contentType: "image/jpeg", upsert: true });
+  if (e1) return { error: e1.message };
+
+  const { data: publica } = supabase.storage.from("recetas").getPublicUrl(ruta);
+
+  const { error: e2 } = await supabase
+    .from("recetas")
+    .update({ foto_url: publica.publicUrl })
+    .eq("id", recetaId);
+  if (e2) return { error: e2.message };
+
+  revalidatePath("/recetas");
+  revalidatePath(`/recetas/${recetaId}`);
+  revalidatePath("/menu");
+  revalidatePath("/hoy");
+  return { ok: true, url: publica.publicUrl };
+}

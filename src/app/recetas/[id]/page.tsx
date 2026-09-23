@@ -74,7 +74,6 @@ export default async function FichaReceta({
       <div className="mt-4">
         <FotoReceta
           recetaId={receta.id}
-          hogarId={receta.hogar_id}
           foto={receta.foto_url}
           nombre={receta.nombre}
         />
