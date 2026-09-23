@@ -5,11 +5,15 @@ import { Navegacion } from "@/components/Navegacion";
 import { ModoCocina } from "@/components/ModoCocina";
 import { RecetaEscalada } from "@/components/RecetaEscalada";
 import { FotoReceta } from "@/components/FotoReceta";
+import { Compartir } from "@/components/Compartir";
 
 interface Ficha {
   id: string;
   nombre: string;
   foto_url: string | null;
+  publica: boolean;
+  veces_copiada: number;
+  etiquetas: string[] | null;
   raciones_base: number;
   minutos: number | null;
   pasos: string[] | null;
@@ -33,7 +37,7 @@ export default async function FichaReceta({
 
   const { data: receta } = await supabase
     .from("recetas")
-    .select("id, nombre, foto_url, raciones_base, minutos, pasos, hogar_id, receta_ingredientes(gramos, seccion, alimentos(nombre, kcal_100))")
+    .select("id, nombre, foto_url, publica, veces_copiada, etiquetas, raciones_base, minutos, pasos, hogar_id, receta_ingredientes(gramos, seccion, alimentos(nombre, kcal_100))")
     .eq("id", id)
     .maybeSingle<Ficha>();
 
@@ -93,6 +97,19 @@ export default async function FichaReceta({
         comensales={count ?? receta.raciones_base}
       />
 
+      {receta.etiquetas && receta.etiquetas.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {receta.etiquetas.map((e) => (
+            <span
+              key={e}
+              className="rounded-full bg-[var(--color-azafran-claro)] px-2.5 py-1 text-[11px] font-medium text-[#7a5410]"
+            >
+              {e}
+            </span>
+          ))}
+        </div>
+      )}
+
       {pasos.length > 0 && (
         <>
           <h2 className="mt-7 text-[13px] font-medium">Cómo se hace</h2>
@@ -112,6 +129,12 @@ export default async function FichaReceta({
           </div>
         </>
       )}
+
+      <Compartir
+        id={receta.id}
+        publica={receta.publica}
+        veces={receta.veces_copiada}
+      />
 
       <Navegacion />
     </main>

@@ -110,6 +110,19 @@ export default function NuevaReceta() {
             </span>
           </div>
 
+          {receta.etiquetas && receta.etiquetas.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {receta.etiquetas.map((e) => (
+                <span
+                  key={e}
+                  className="rounded-full bg-[var(--color-azafran-claro)] px-2.5 py-1 text-[11px] font-medium text-[#7a5410]"
+                >
+                  {e}
+                </span>
+              ))}
+            </div>
+          )}
+
           <h2 className="mt-6 text-[13px] font-medium">Ingredientes</h2>
           <ul className="mt-2 divide-y divide-[var(--color-linea)] rounded-xl border border-[var(--color-linea)] bg-[var(--color-loza)] px-4">
             {receta.ingredientes.map((ing, i) => (

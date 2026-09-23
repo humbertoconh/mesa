@@ -16,15 +16,22 @@ Reglas:
 - Sección: fruta_verdura, carniceria, pescaderia, lacteos, panaderia,
   congelados, despensa u otros. Es para agrupar la lista de la compra.
 - Pasos: 4 a 8 frases cortas. Nada de párrafos largos.
+- Etiquetas: de 2 a 4, sólo de esta lista, las que apliquen:
+  rápido, horno, plancha, guiso, arroz, pasta, legumbre, pescado, carne,
+  verdura, huevo, sopa, ensalada, postre, sin gluten, vegetariano.
 
 Responde SÓLO con el JSON, sin markdown ni texto alrededor:
-{"nombre":"...","raciones":4,"minutos":45,
+{"nombre":"...","raciones":4,"minutos":45,"etiquetas":["...","..."],
  "ingredientes":[{"nombre":"...","gramos":0,"seccion":"despensa",
    "kcal_100":0,"prot_100":0,"carb_100":0,"grasa_100":0}],
  "pasos":["...","..."]}`;
 
 const SECCIONES = ["fruta_verdura", "carniceria", "pescaderia", "lacteos",
                    "panaderia", "congelados", "despensa", "otros"];
+
+const ETIQUETAS = ["rápido", "horno", "plancha", "guiso", "arroz", "pasta",
+                   "legumbre", "pescado", "carne", "verdura", "huevo", "sopa",
+                   "ensalada", "postre", "sin gluten", "vegetariano"];
 
 function extraerJSON(bruto: string) {
   const limpio = bruto.replace(/```json|```/g, "").trim();
@@ -92,6 +99,12 @@ export async function POST(peticion: Request) {
       nombre: String(p.nombre ?? "Receta sin nombre").slice(0, 120),
       raciones: Math.min(Math.max(Number(p.raciones) || 4, 1), 20),
       minutos: Number(p.minutos) || null,
+      etiquetas: Array.isArray(p.etiquetas)
+        ? p.etiquetas
+            .map((e: unknown) => String(e).toLowerCase().trim())
+            .filter((e: string) => ETIQUETAS.includes(e))
+            .slice(0, 4)
+        : [],
       pasos: Array.isArray(p.pasos)
         ? p.pasos.slice(0, 12).map((s: unknown) => String(s).slice(0, 300))
         : [],

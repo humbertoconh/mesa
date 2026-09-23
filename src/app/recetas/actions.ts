@@ -17,6 +17,7 @@ export interface IngredienteIA {
 export interface RecetaIA {
   nombre: string;
   raciones: number;
+  etiquetas?: string[];
   minutos: number | null;
   pasos: string[];
   ingredientes: IngredienteIA[];
@@ -42,6 +43,7 @@ export async function guardarReceta(receta: RecetaIA) {
       raciones_base: receta.raciones,
       minutos: receta.minutos,
       pasos: receta.pasos,
+      etiquetas: receta.etiquetas ?? [],
     })
     .select("id")
     .single();
@@ -153,4 +155,38 @@ export async function guardarFoto(id: string, url: string) {
   revalidatePath("/menu");
   revalidatePath("/hoy");
   return { ok: true };
+}
+
+export async function compartir(id: string, publica: boolean) {
+  const supabase = await clienteServidor();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/entrar");
+
+  // Al compartir se guarda quién la aporta, para que salga en el
+  // recetario común. Sólo el nombre de pila, nada más.
+  const { data: yo } = await supabase
+    .from("miembros")
+    .select("nombre")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const { error } = await supabase
+    .from("recetas")
+    .update({ publica, autor: publica ? (yo?.nombre ?? null) : null })
+    .eq("id", id);
+  if (error) return { error: error.message };
+
+  revalidatePath(`/recetas/${id}`);
+  revalidatePath("/recetas");
+  return { ok: true };
+}
+
+export async function copiarReceta(id: string) {
+  const supabase = await clienteServidor();
+  const { data, error } = await supabase.rpc("copiar_receta", { p_receta_id: id });
+  if (error) return { error: error.message };
+
+  revalidatePath("/recetas");
+  revalidatePath("/menu");
+  return { ok: true, id: data as string };
 }

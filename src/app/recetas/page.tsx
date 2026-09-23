@@ -46,6 +46,25 @@ export default async function Recetas() {
         </Link>
       </div>
 
+      <Link
+        href="/recetas/compartidas"
+        className="tarjeta mt-5 flex items-center gap-3 px-4 py-3.5"
+      >
+        <span
+          aria-hidden
+          className="grid h-10 w-10 place-items-center rounded-full bg-[var(--color-azulejo-claro)] text-[18px]"
+        >
+          🍲
+        </span>
+        <span className="flex-1">
+          <span className="block text-[14px] font-semibold">Recetas de todos</span>
+          <span className="block text-[12px] text-[var(--color-tenue)]">
+            Lo que comparten otras casas. Cópialo a la tuya.
+          </span>
+        </span>
+        <span aria-hidden className="text-[var(--color-tenue)]">→</span>
+      </Link>
+
       {!lista.length && (
         <div className="tarjeta mt-10 px-5 py-8 text-center">
           <p className="text-[14px] leading-relaxed">

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { clienteServidor } from "@/lib/supabase/server";
 import { Navegacion } from "@/components/Navegacion";
 import { CodigoCasa } from "@/components/CodigoCasa";
+import { QuitarMiembro } from "@/components/QuitarMiembro";
 import { salir } from "@/app/entrar/actions";
 
 interface MiembroFila {
@@ -25,7 +26,7 @@ export default async function Casa() {
 
   const { data: yo } = await supabase
     .from("miembros")
-    .select("hogar_id")
+    .select("hogar_id, rol")
     .eq("id", user.id)
     .maybeSingle();
   if (!yo) redirect("/empezar");
@@ -59,7 +60,7 @@ export default async function Casa() {
         {miembros?.map((m, i) => (
           <div
             key={m.id}
-            className="tarjeta flex items-center gap-3 px-4 py-3.5"
+            className="tarjeta flex flex-wrap items-center gap-3 px-4 py-3.5"
           >
             <span
               aria-hidden
@@ -78,6 +79,9 @@ export default async function Casa() {
               <span className="text-[11px] uppercase tracking-wider text-[var(--color-tenue)]">
                 Admin
               </span>
+            )}
+            {yo.rol === "admin" && m.id !== user.id && (
+              <QuitarMiembro id={m.id} nombre={m.nombre} />
             )}
           </div>
         ))}
