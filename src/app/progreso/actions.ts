@@ -67,3 +67,24 @@ async function recalcularObjetivo(miembroId: string, kg: number) {
     .from("objetivos")
     .insert({ miembro_id: miembroId, meta: vigente.meta, ...objetivo });
 }
+
+/**
+ * Vasos de agua de hoy. Se guarda el total, no cada vaso: así dar dos
+ * veces al botón sin querer no suma de más.
+ */
+export async function ponerAgua(vasos: number) {
+  const supabase = await clienteServidor();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/entrar");
+
+  const limitado = Math.min(Math.max(vasos, 0), 20);
+
+  const { error } = await supabase.from("agua").upsert(
+    { miembro_id: user.id, fecha: hoyISO(), vasos: limitado },
+    { onConflict: "miembro_id,fecha" }
+  );
+  if (error) return { error: error.message };
+
+  revalidatePath("/progreso");
+  return { ok: true };
+}

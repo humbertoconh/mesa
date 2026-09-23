@@ -4,6 +4,7 @@ import { hoyISO } from "@/lib/objetivo";
 import { Navegacion } from "@/components/Navegacion";
 import { ApuntarPeso } from "@/components/ApuntarPeso";
 import { GraficaPeso } from "@/components/GraficaPeso";
+import { Agua } from "@/components/Agua";
 
 interface PesoFila {
   fecha: string;
@@ -21,6 +22,13 @@ export default async function Progreso() {
     .order("fecha")
     .limit(60)
     .returns<PesoFila[]>();
+
+  const { data: agua } = await supabase
+    .from("agua")
+    .select("vasos")
+    .eq("miembro_id", user.id)
+    .eq("fecha", hoyISO())
+    .maybeSingle();
 
   const { data: objetivo } = await supabase
     .from("objetivos")
@@ -106,6 +114,10 @@ export default async function Progreso() {
           </p>
         </section>
       )}
+
+      <section className="mt-3 px-5">
+        <Agua vasos={agua?.vasos ?? 0} />
+      </section>
 
       <section className="mt-6 px-5">
         {pesadoHoy ? (
