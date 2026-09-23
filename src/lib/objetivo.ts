@@ -70,7 +70,7 @@ export function edadDesde(nacimiento: string): number {
 export const MOMENTOS = ["desayuno", "almuerzo", "comida", "merienda", "cena"] as const;
 export type Momento = (typeof MOMENTOS)[number];
 
-export function momentoSugerido(hora = new Date().getHours()): Momento {
+export function momentoSugerido(hora = horaAqui()): Momento {
   if (hora < 11) return "desayuno";
   if (hora < 13) return "almuerzo";
   if (hora < 16) return "comida";
@@ -78,10 +78,34 @@ export function momentoSugerido(hora = new Date().getHours()): Momento {
   return "cena";
 }
 
+/**
+ * Zona horaria de la casa. El servidor de Vercel corre en UTC, así que
+ * si no la fijamos, entre medianoche y las dos de la mañana la cena se
+ * guarda en el día anterior.
+ */
+export const ZONA = "Europe/Madrid";
+
 export function hoyISO(): string {
-  // Fecha local, no UTC: si no, a partir de las 2 de la mañana en
-  // España la cena se te va al día siguiente.
-  const d = new Date();
-  const off = d.getTimezoneOffset();
-  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10);
+  // 'sv-SE' da el formato AAAA-MM-DD, que es justo el que guarda Postgres.
+  return new Intl.DateTimeFormat("sv-SE", { timeZone: ZONA }).format(new Date());
+}
+
+/** La hora que es en casa ahora mismo, no en el servidor. */
+export function horaAqui(): number {
+  return Number(
+    new Intl.DateTimeFormat("es-ES", {
+      timeZone: ZONA,
+      hour: "2-digit",
+      hour12: false,
+    }).format(new Date())
+  );
+}
+
+export function fechaLarga(): string {
+  return new Date().toLocaleDateString("es-ES", {
+    timeZone: ZONA,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 }

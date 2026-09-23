@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { clienteServidor } from "@/lib/supabase/server";
-import { hoyISO, MOMENTOS } from "@/lib/objetivo";
+import { fechaLarga, hoyISO, MOMENTOS } from "@/lib/objetivo";
 import { Anillo } from "@/components/Anillo";
 import { Macro } from "@/components/Macro";
 import { AnadirComida } from "@/components/AnadirComida";
@@ -44,11 +44,7 @@ export default async function Hoy() {
   const suma = (c: keyof Registro) =>
     filas.reduce((s, r) => s + Number(r[c] ?? 0), 0);
 
-  const fecha = new Date().toLocaleDateString("es-ES", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
+  const fecha = fechaLarga();
 
   return (
     <main className="mx-auto max-w-md px-5 pb-28 pt-10">
