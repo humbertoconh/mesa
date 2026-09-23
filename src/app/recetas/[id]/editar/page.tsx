@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { clienteServidor } from "@/lib/supabase/server";
+import { exigirCasaActiva } from "@/lib/guardia";
 import { FormEditarReceta } from "@/components/FormEditarReceta";
 
 interface Ficha {
@@ -21,9 +21,7 @@ export default async function EditarReceta({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await clienteServidor();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/entrar");
+  const { supabase, user } = await exigirCasaActiva();
 
   const { data: receta } = await supabase
     .from("recetas")

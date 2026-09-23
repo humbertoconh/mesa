@@ -17,7 +17,7 @@ export default function Empezar() {
       </h1>
       <p className="mt-3 text-[15px] leading-relaxed text-[var(--color-tenue)]">
         {modo === "crear"
-          ? "Creas la casa y repartes el código al resto."
+          ? "Creas la casa y repartes el código al resto. Las casas nuevas pasan por una aprobación antes de poder usarse."
           : "Pide el código a quien la haya creado."}
       </p>
 

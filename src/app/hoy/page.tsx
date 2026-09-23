@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { clienteServidor } from "@/lib/supabase/server";
+import { exigirCasaActiva } from "@/lib/guardia";
 import { fechaLarga, hoyISO, MOMENTOS, type Momento } from "@/lib/objetivo";
 import { Anillo } from "@/components/Anillo";
 import { Macro } from "@/components/Macro";
@@ -12,9 +12,7 @@ import { calcularRacion } from "@/lib/racion";
 import type { ObjetivoFila, Registro } from "@/lib/tipos";
 
 export default async function Hoy() {
-  const supabase = await clienteServidor();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/entrar");
+  const { supabase, user } = await exigirCasaActiva();
 
   const { data: miembro } = await supabase
     .from("miembros")

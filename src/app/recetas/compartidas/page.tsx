@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { clienteServidor } from "@/lib/supabase/server";
+import { exigirCasaActiva } from "@/lib/guardia";
 import { Navegacion } from "@/components/Navegacion";
 import { Miniatura } from "@/components/Miniatura";
 import { BotonCopiar } from "@/components/BotonCopiar";
@@ -24,9 +24,7 @@ export default async function Compartidas({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q } = await searchParams;
-  const supabase = await clienteServidor();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/entrar");
+  const { supabase, user } = await exigirCasaActiva();
 
   const { data: yo } = await supabase
     .from("miembros")

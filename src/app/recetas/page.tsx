@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { clienteServidor } from "@/lib/supabase/server";
+import { exigirCasaActiva } from "@/lib/guardia";
 import { Navegacion } from "@/components/Navegacion";
 import { BorrarReceta } from "@/components/BorrarReceta";
 import { Miniatura } from "@/components/Miniatura";
@@ -15,9 +15,7 @@ interface RecetaFila {
 }
 
 export default async function Recetas() {
-  const supabase = await clienteServidor();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/entrar");
+  const { supabase, user } = await exigirCasaActiva();
 
   const { data: recetas } = await supabase
     .from("recetas")

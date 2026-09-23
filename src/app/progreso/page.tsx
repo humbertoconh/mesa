@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { clienteServidor } from "@/lib/supabase/server";
+import { exigirCasaActiva } from "@/lib/guardia";
 import { hoyISO } from "@/lib/objetivo";
 import { Navegacion } from "@/components/Navegacion";
 import { ApuntarPeso } from "@/components/ApuntarPeso";
@@ -12,9 +12,7 @@ interface PesoFila {
 }
 
 export default async function Progreso() {
-  const supabase = await clienteServidor();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/entrar");
+  const { supabase, user } = await exigirCasaActiva();
 
   const { data: pesos } = await supabase
     .from("pesos")

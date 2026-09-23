@@ -18,7 +18,8 @@ export async function crearHogar(_estado: string | null, datos: FormData) {
 
   if (error) return error.message;
   revalidatePath("/", "layout");
-  redirect("/perfil");
+  // La casa nace pendiente: la raíz decide si vas al perfil o a esperar.
+  redirect("/");
 }
 
 export async function unirse(_estado: string | null, datos: FormData) {

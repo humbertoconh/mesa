@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { clienteServidor } from "@/lib/supabase/server";
+import { exigirCasaActiva } from "@/lib/guardia";
 import { Navegacion } from "@/components/Navegacion";
 import { CodigoCasa } from "@/components/CodigoCasa";
 import { QuitarMiembro } from "@/components/QuitarMiembro";
@@ -20,9 +20,7 @@ const COLORES = [
 ];
 
 export default async function Casa() {
-  const supabase = await clienteServidor();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/entrar");
+  const { supabase, user } = await exigirCasaActiva();
 
   const { data: yo } = await supabase
     .from("miembros")
@@ -30,6 +28,8 @@ export default async function Casa() {
     .eq("id", user.id)
     .maybeSingle();
   if (!yo) redirect("/empezar");
+
+  const { data: super_ } = await supabase.rpc("es_super");
 
   const { data: hogar } = await supabase
     .from("hogares")
@@ -124,6 +124,20 @@ export default async function Casa() {
           </span>
         </Link>
       </section>
+
+      {super_ === true && (
+        <section className="mt-3 px-5">
+          <Link
+            href="/admin"
+            className="tarjeta block px-4 py-3.5 ring-2 ring-[var(--color-azafran)]"
+          >
+            <span className="text-[14px] font-semibold">Administrar Mesa</span>
+            <span className="mt-0.5 block text-[12px] text-[var(--color-tenue)]">
+              Aprobar casas nuevas, bloquear y borrar.
+            </span>
+          </Link>
+        </section>
+      )}
 
       <form action={salir} className="mt-8 px-5">
         <button className="text-[13px] text-[var(--color-tenue)] underline underline-offset-4">

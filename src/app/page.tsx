@@ -8,11 +8,16 @@ export default async function Inicio() {
 
   const { data: miembro } = await supabase
     .from("miembros")
-    .select("id, altura_cm")
+    .select("id, altura_cm, hogares(estado)")
     .eq("id", user.id)
     .maybeSingle();
 
   if (!miembro) redirect("/empezar");
+
+  const estado = (miembro as unknown as { hogares: { estado: string } | null })
+    .hogares?.estado;
+  if (estado !== "activa") redirect("/espera");
+
   if (!miembro.altura_cm) redirect("/perfil");
   redirect("/hoy");
 }

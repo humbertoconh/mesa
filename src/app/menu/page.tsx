@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { clienteServidor } from "@/lib/supabase/server";
+import { exigirCasaActiva } from "@/lib/guardia";
 import { hoyISO, type Momento } from "@/lib/objetivo";
 import { calcularRacion, diasDeSemana, lunesDe, nombreDia } from "@/lib/racion";
 import { Navegacion } from "@/components/Navegacion";
@@ -23,9 +23,7 @@ export default async function Menu({
 }: {
   searchParams: Promise<{ semana?: string }>;
 }) {
-  const supabase = await clienteServidor();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/entrar");
+  const { supabase, user } = await exigirCasaActiva();
 
   const { semana } = await searchParams;
   const lunes = lunesDe(semana ?? hoyISO());
