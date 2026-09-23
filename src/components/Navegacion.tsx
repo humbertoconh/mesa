@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 
 const PESTANAS = [
   { href: "/hoy", texto: "Hoy" },
+  { href: "/menu", texto: "Menú" },
+  { href: "/compra", texto: "Compra" },
   { href: "/progreso", texto: "Progreso" },
   { href: "/casa", texto: "Casa" },
 ];
@@ -22,7 +24,7 @@ export function Navegacion() {
               <Link
                 href={p.href}
                 aria-current={activa ? "page" : undefined}
-                className={`block py-3.5 text-center text-[13px] ${
+                className={`block py-3.5 text-center text-[12px] ${
                   activa
                     ? "font-medium text-[var(--color-pino)]"
                     : "text-[var(--color-tenue)]"
