@@ -6,6 +6,7 @@ import { calcularRacion, diasDeSemana, lunesDe, nombreDia } from "@/lib/racion";
 import { Navegacion } from "@/components/Navegacion";
 import { SelectorPlato } from "@/components/SelectorPlato";
 import { BotonLista } from "@/components/BotonLista";
+import { BotonSemana } from "@/components/BotonSemana";
 
 const MOMENTOS_MENU: Momento[] = ["comida", "cena"];
 
@@ -173,6 +174,7 @@ export default async function Menu({
           </section>
 
           <section className="mt-6 flex flex-col gap-3">
+            <BotonSemana dias={dias} vacia={!(puestos ?? []).length} />
             <BotonLista lunes={lunes} dias={dias} />
             <div className="flex gap-2">
               <Link
