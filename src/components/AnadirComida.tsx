@@ -4,18 +4,10 @@ import { useCallback, useState } from "react";
 import { MOMENTOS, momentoSugerido } from "@/lib/objetivo";
 import { guardarComida } from "@/app/hoy/actions";
 import { Escaner } from "@/components/Escaner";
+import { CapturaFoto, type Producto } from "@/components/CapturaFoto";
 import type { AlimentoDesglosado } from "@/lib/tipos";
 
-interface Producto {
-  nombre: string;
-  marca: string | null;
-  kcal_100: number;
-  prot_100: number;
-  carb_100: number;
-  grasa_100: number;
-}
-
-type Modo = "cerrado" | "elegir" | "texto" | "escaner" | "producto";
+type Modo = "cerrado" | "elegir" | "texto" | "escaner" | "foto" | "producto";
 
 export function AnadirComida() {
   const [modo, setModo] = useState<Modo>("cerrado");
@@ -170,7 +162,7 @@ export function AnadirComida() {
       )}
 
       {modo === "elegir" && (
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="mt-3 grid grid-cols-3 gap-2">
           <button
             onClick={() => setModo("texto")}
             className="rounded-lg border border-[var(--color-linea)] px-3 py-4 text-[13px]"
@@ -179,7 +171,7 @@ export function AnadirComida() {
                  strokeWidth="1.6" className="mx-auto">
               <path d="M4 6h16M4 11h16M4 16h10" />
             </svg>
-            <span className="mt-1.5 block">Escribir o dictar</span>
+            <span className="mt-1.5 block">Escribir</span>
           </button>
           <button
             onClick={() => setModo("escaner")}
@@ -189,7 +181,19 @@ export function AnadirComida() {
                  strokeWidth="1.6" className="mx-auto">
               <path d="M3 4.5v15M7 4.5v15M11 4.5v15M14.5 4.5v15M18 4.5v15M21 4.5v15" />
             </svg>
-            <span className="mt-1.5 block">Código de barras</span>
+            <span className="mt-1.5 block">Código</span>
+          </button>
+          <button
+            onClick={() => setModo("foto")}
+            className="rounded-lg border border-[var(--color-linea)] px-3 py-4 text-[13px]"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 strokeWidth="1.6" className="mx-auto">
+              <rect x="2.5" y="6" width="19" height="14" rx="3" />
+              <circle cx="12" cy="13" r="4" />
+              <path d="M8.5 6l1.5-2.5h4L15.5 6" />
+            </svg>
+            <span className="mt-1.5 block">Foto</span>
           </button>
         </div>
       )}
@@ -220,6 +224,24 @@ export function AnadirComida() {
 
       {modo === "escaner" && (
         <Escaner alLeer={alLeer} alCerrar={() => setModo("elegir")} />
+      )}
+
+      {modo === "foto" && (
+        <CapturaFoto
+          alLeerEtiqueta={(p) => {
+            setProducto(p);
+            setGramos(100);
+            setModo("producto");
+          }}
+          alLeerPlato={(a) => {
+            setLista([...lista, ...a]);
+            setModo("elegir");
+          }}
+          alFallar={(m) => {
+            setError(m);
+            setModo("elegir");
+          }}
+        />
       )}
 
       {modo === "producto" && producto && (
