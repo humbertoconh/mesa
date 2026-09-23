@@ -79,3 +79,126 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* =====================================================================
+   Hoja del menú para colgar en la nevera. Se ve bien en pantalla y sale
+   limpia al imprimir o al guardar en PDF desde el navegador.
+   ===================================================================== */
+
+.hoja {
+  max-width: 720px;
+  margin: 0 auto 60px;
+  padding: 30px 34px 34px;
+  background: var(--color-loza);
+  border-radius: 18px;
+  box-shadow: var(--shadow-tarjeta);
+}
+
+.hoja .cabeza {
+  border-bottom: 2px solid var(--color-tinta);
+  padding-bottom: 14px;
+}
+.hoja h1 {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+}
+.hoja .sub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--color-tenue);
+}
+
+.hoja .semana {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+.hoja .semana th {
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--color-tenue);
+  font-weight: 600;
+  padding: 0 10px 8px 0;
+}
+.hoja .semana td {
+  border-top: 1px solid var(--color-linea);
+  padding: 11px 10px 11px 0;
+  font-size: 14px;
+  vertical-align: top;
+}
+.hoja .semana td.dia,
+.hoja .semana th.dia {
+  width: 132px;
+  text-transform: capitalize;
+  font-weight: 600;
+  color: var(--color-pino);
+}
+.hoja .vacio { color: var(--color-linea); }
+
+.hoja .titulo-compra {
+  margin-top: 28px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+.hoja .compra {
+  margin-top: 12px;
+  columns: 2;
+  column-gap: 30px;
+}
+.hoja .seccion {
+  break-inside: avoid;
+  margin-bottom: 14px;
+}
+.hoja .seccion h3 {
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--color-naranja);
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.hoja .seccion li {
+  font-size: 12.5px;
+  line-height: 1.9;
+  list-style: none;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+.hoja .casilla {
+  width: 11px;
+  height: 11px;
+  border: 1px solid var(--color-tenue);
+  border-radius: 3px;
+  flex: 0 0 11px;
+}
+.hoja .cant { color: var(--color-tenue); }
+
+.hoja .pie {
+  margin-top: 26px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-linea);
+  font-size: 10.5px;
+  color: var(--color-tenue);
+}
+
+@media print {
+  @page { size: A4; margin: 14mm; }
+  html, body { background: #fff; }
+  .no-imprimir { display: none !important; }
+  .hoja {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .hoja .semana td.dia { color: #000; }
+  .hoja .seccion h3 { color: #000; }
+}

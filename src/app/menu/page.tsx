@@ -188,6 +188,14 @@ export default async function Menu({
                 Recetario
               </Link>
             </div>
+            <div className="flex gap-2">
+              <Link
+                href={`/menu/imprimir?semana=${lunes}`}
+                className="flex-1 rounded-xl border border-[var(--color-linea)] px-4 py-3 text-center text-[14px]"
+              >
+                Hoja para la nevera
+              </Link>
+            </div>
           </section>
 
           {!kcalDia && (
