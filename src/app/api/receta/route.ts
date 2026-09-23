@@ -22,7 +22,15 @@ Reglas:
     "De toda España"; si no es español, "De fuera".
   · tipo: qué papel hace en la mesa.
   · temporada: cuándo apetece. Si da igual, "todo el año".
-  · dificultad: cuánta mano hace falta.
+  · dificultad: NO la mires por el tiempo total, mírala por el tiempo con
+    las manos ocupadas y por si hay algún paso donde te la juegas.
+    - fácil: menos de 20 minutos activos, se hace solo y aguanta despistes.
+      Unas lentejas tardan dos horas y son fáciles.
+    - media: de 20 a 45 minutos activos, o hay que estar encima en algún
+      momento: varias tandas, rebozar, un sofrito que no se puede quemar.
+    - elaborada: más de 45 minutos activos, o dos preparaciones a la vez,
+      o hay un paso crítico que no perdona (el punto del arroz de una
+      paella, la emulsión de un pil pil, una masa, un caldo aparte).
   · etiquetas: de 3 a 6, las que de verdad apliquen. No las fuerces.
 
 Listas válidas:
