@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { clienteServidor } from "@/lib/supabase/server";
+import { DIFICULTADES, ETIQUETAS, REGIONES, TEMPORADAS, TIPOS } from "@/lib/clasificacion";
 
 const MODELO = process.env.MODELO_IA ?? "claude-sonnet-5";
 
@@ -16,22 +17,31 @@ Reglas:
 - Sección: fruta_verdura, carniceria, pescaderia, lacteos, panaderia,
   congelados, despensa u otros. Es para agrupar la lista de la compra.
 - Pasos: 4 a 8 frases cortas. Nada de párrafos largos.
-- Etiquetas: de 2 a 4, sólo de esta lista, las que apliquen:
-  rápido, horno, plancha, guiso, arroz, pasta, legumbre, pescado, carne,
-  verdura, huevo, sopa, ensalada, postre, sin gluten, vegetariano.
+- Clasificación. Usa SÓLO los valores de estas listas, tal cual:
+  · region: de dónde es el plato. Si no es de una comunidad concreta pon
+    "De toda España"; si no es español, "De fuera".
+  · tipo: qué papel hace en la mesa.
+  · temporada: cuándo apetece. Si da igual, "todo el año".
+  · dificultad: cuánta mano hace falta.
+  · etiquetas: de 3 a 6, las que de verdad apliquen. No las fuerces.
+
+Listas válidas:
+region: ${REGIONES.join(", ")}
+tipo: ${TIPOS.join(", ")}
+temporada: ${TEMPORADAS.join(", ")}
+dificultad: ${DIFICULTADES.join(", ")}
+etiquetas: ${ETIQUETAS.join(", ")}
 
 Responde SÓLO con el JSON, sin markdown ni texto alrededor:
-{"nombre":"...","raciones":4,"minutos":45,"etiquetas":["...","..."],
+{"nombre":"...","raciones":4,"minutos":45,
+ "region":"...","tipo":"...","temporada":"...","dificultad":"...",
+ "etiquetas":["...","..."],
  "ingredientes":[{"nombre":"...","gramos":0,"seccion":"despensa",
    "kcal_100":0,"prot_100":0,"carb_100":0,"grasa_100":0}],
  "pasos":["...","..."]}`;
 
 const SECCIONES = ["fruta_verdura", "carniceria", "pescaderia", "lacteos",
                    "panaderia", "congelados", "despensa", "otros"];
-
-const ETIQUETAS = ["rápido", "horno", "plancha", "guiso", "arroz", "pasta",
-                   "legumbre", "pescado", "carne", "verdura", "huevo", "sopa",
-                   "ensalada", "postre", "sin gluten", "vegetariano"];
 
 function extraerJSON(bruto: string) {
   const limpio = bruto.replace(/```json|```/g, "").trim();
@@ -99,11 +109,15 @@ export async function POST(peticion: Request) {
       nombre: String(p.nombre ?? "Receta sin nombre").slice(0, 120),
       raciones: Math.min(Math.max(Number(p.raciones) || 4, 1), 20),
       minutos: Number(p.minutos) || null,
+      region: (REGIONES as readonly string[]).includes(p.region) ? p.region : null,
+      tipo: (TIPOS as readonly string[]).includes(p.tipo) ? p.tipo : null,
+      temporada: (TEMPORADAS as readonly string[]).includes(p.temporada) ? p.temporada : "todo el año",
+      dificultad: (DIFICULTADES as readonly string[]).includes(p.dificultad) ? p.dificultad : null,
       etiquetas: Array.isArray(p.etiquetas)
         ? p.etiquetas
             .map((e: unknown) => String(e).toLowerCase().trim())
-            .filter((e: string) => ETIQUETAS.includes(e))
-            .slice(0, 4)
+            .filter((e: string) => (ETIQUETAS as readonly string[]).includes(e))
+            .slice(0, 6)
         : [],
       pasos: Array.isArray(p.pasos)
         ? p.pasos.slice(0, 12).map((s: unknown) => String(s).slice(0, 300))

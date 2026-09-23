@@ -12,6 +12,10 @@ interface Ficha {
   nombre: string;
   foto_url: string | null;
   publica: boolean;
+  tipo: string | null;
+  region: string | null;
+  temporada: string | null;
+  dificultad: string | null;
   veces_copiada: number;
   etiquetas: string[] | null;
   raciones_base: number;
@@ -35,7 +39,7 @@ export default async function FichaReceta({
 
   const { data: receta } = await supabase
     .from("recetas")
-    .select("id, nombre, foto_url, publica, veces_copiada, etiquetas, raciones_base, minutos, pasos, hogar_id, receta_ingredientes(gramos, seccion, alimentos(nombre, kcal_100))")
+    .select("id, nombre, foto_url, publica, veces_copiada, etiquetas, tipo, region, temporada, dificultad, raciones_base, minutos, pasos, hogar_id, receta_ingredientes(gramos, seccion, alimentos(nombre, kcal_100))")
     .eq("id", id)
     .maybeSingle<Ficha>();
 
@@ -82,11 +86,16 @@ export default async function FichaReceta({
       <h1 className="mt-4 font-[family-name:var(--font-display)] text-[26px] font-semibold leading-tight">
         {receta.nombre}
       </h1>
-      {receta.minutos && (
-        <p className="mt-1.5 text-[13px] text-[var(--color-tenue)]">
-          <span className="cifra">{receta.minutos}</span> minutos
-        </p>
-      )}
+      <p className="mt-1.5 text-[13px] text-[var(--color-tenue)]">
+        {[
+          receta.tipo,
+          receta.region,
+          receta.minutos ? `${receta.minutos} min` : null,
+          receta.dificultad,
+        ]
+          .filter(Boolean)
+          .join(" · ")}
+      </p>
 
       <RecetaEscalada
         ingredientes={ingredientes}

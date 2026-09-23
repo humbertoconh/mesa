@@ -17,6 +17,10 @@ export interface IngredienteIA {
 export interface RecetaIA {
   nombre: string;
   raciones: number;
+  region?: string | null;
+  tipo?: string | null;
+  temporada?: string | null;
+  dificultad?: string | null;
   etiquetas?: string[];
   minutos: number | null;
   pasos: string[];
@@ -57,6 +61,10 @@ export async function guardarReceta(receta: RecetaIA, compartir = false) {
       minutos: receta.minutos,
       pasos: receta.pasos,
       etiquetas: receta.etiquetas ?? [],
+      region: receta.region ?? null,
+      tipo: receta.tipo ?? null,
+      temporada: receta.temporada ?? null,
+      dificultad: receta.dificultad ?? null,
     })
     .select("id")
     .single();

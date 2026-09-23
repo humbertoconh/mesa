@@ -4,6 +4,8 @@ import { exigirCasaActiva } from "@/lib/guardia";
 import { Navegacion } from "@/components/Navegacion";
 import { Miniatura } from "@/components/Miniatura";
 import { BotonCopiar } from "@/components/BotonCopiar";
+import { Filtros } from "@/components/Filtros";
+import { aplicar, kcalRacion } from "@/lib/filtrar";
 
 interface Fila {
   id: string;
@@ -11,6 +13,8 @@ interface Fila {
   foto_url: string | null;
   autor: string | null;
   etiquetas: string[];
+  tipo: string | null;
+  region: string | null;
   minutos: number | null;
   veces_copiada: number;
   raciones_base: number;
@@ -21,9 +25,12 @@ interface Fila {
 export default async function Compartidas({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{
+    q?: string; tipo?: string; region?: string; etiqueta?: string; banda?: string;
+  }>;
 }) {
-  const { q } = await searchParams;
+  const filtros = await searchParams;
+  const { q } = filtros;
   const { supabase, user } = await exigirCasaActiva();
 
   const { data: yo } = await supabase
@@ -34,7 +41,7 @@ export default async function Compartidas({
 
   let consulta = supabase
     .from("recetas")
-    .select("id, nombre, foto_url, autor, etiquetas, minutos, veces_copiada, raciones_base, hogar_id, receta_ingredientes(gramos, alimentos(kcal_100))")
+    .select("id, nombre, foto_url, autor, etiquetas, tipo, region, minutos, veces_copiada, raciones_base, hogar_id, receta_ingredientes(gramos, alimentos(kcal_100))")
     .eq("publica", true)
     .order("veces_copiada", { ascending: false })
     .limit(60);
@@ -44,7 +51,8 @@ export default async function Compartidas({
   const { data: recetas } = await consulta.returns<Fila[]>();
 
   // Las de tu propia casa no se copian a sí mismas.
-  const lista = (recetas ?? []).filter((r) => r.hogar_id !== yo?.hogar_id);
+  const todas = (recetas ?? []).filter((r) => r.hogar_id !== yo?.hogar_id);
+  const lista = aplicar(todas, filtros);
 
   return (
     <main className="mx-auto max-w-md pb-28">
@@ -66,10 +74,16 @@ export default async function Compartidas({
         </form>
       </header>
 
+      <div className="px-5">
+        {todas.length > 0 && <Filtros cuantas={lista.length} />}
+      </div>
+
       {!lista.length ? (
         <div className="tarjeta mx-5 mt-8 px-5 py-8 text-center">
           <p className="text-[14px] leading-relaxed">
-            {q ? "No hay nada con ese nombre." : "Todavía no hay recetas compartidas."}
+            {todas.length
+              ? "Nada cuadra con esa búsqueda."
+              : "Todavía no hay recetas compartidas."}
           </p>
           <p className="mt-2 text-[12.5px] leading-relaxed text-[var(--color-tenue)]">
             Comparte tú alguna desde su ficha y empieza la rueda.
@@ -84,19 +98,19 @@ export default async function Compartidas({
       ) : (
         <section className="mt-6 flex flex-col gap-2.5 px-5">
           {lista.map((r) => {
-            const kcal = r.receta_ingredientes.reduce(
-              (s, i) => s + (Number(i.gramos) * Number(i.alimentos?.kcal_100 ?? 0)) / 100,
-              0
-            );
             return (
               <article key={r.id} className="tarjeta flex flex-wrap items-center gap-3 px-3.5 py-3">
                 <Miniatura nombre={r.nombre} foto={r.foto_url} />
                 <div className="min-w-0 flex-1">
                   <h2 className="text-[14px] font-semibold">{r.nombre}</h2>
                   <p className="mt-0.5 text-[12px] text-[var(--color-tenue)]">
-                    <span className="cifra">{Math.round(kcal / r.raciones_base)}</span> kcal
-                    {r.minutos ? ` · ${r.minutos} min` : ""}
-                    {r.autor ? ` · de ${r.autor}` : ""}
+                    <span className="cifra">{kcalRacion(r)}</span> kcal
+                    {r.tipo ? ` · ${r.tipo}` : ""}
+                    {r.region ? ` · ${r.region}` : ""}
+                  </p>
+                  <p className="text-[11px] text-[var(--color-tenue)]">
+                    {r.autor ? `de ${r.autor}` : ""}
+                    {r.veces_copiada > 0 ? ` · copiada ${r.veces_copiada} veces` : ""}
                   </p>
                   {r.etiquetas?.length > 0 && (
                     <div className="mt-1.5 flex flex-wrap gap-1">

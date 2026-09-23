@@ -4,26 +4,37 @@ import { exigirCasaActiva } from "@/lib/guardia";
 import { Navegacion } from "@/components/Navegacion";
 import { BorrarReceta } from "@/components/BorrarReceta";
 import { Miniatura } from "@/components/Miniatura";
+import { Filtros } from "@/components/Filtros";
+import { aplicar, kcalRacion } from "@/lib/filtrar";
 
 interface RecetaFila {
   id: string;
   nombre: string;
   foto_url: string | null;
+  tipo: string | null;
+  region: string | null;
+  etiquetas: string[] | null;
   raciones_base: number;
   minutos: number | null;
   receta_ingredientes: { gramos: number; alimentos: { kcal_100: number } | null }[];
 }
 
-export default async function Recetas() {
+export default async function Recetas({
+  searchParams,
+}: {
+  searchParams: Promise<{ tipo?: string; region?: string; etiqueta?: string; banda?: string }>;
+}) {
+  const filtros = await searchParams;
   const { supabase, user } = await exigirCasaActiva();
 
   const { data: recetas } = await supabase
     .from("recetas")
-    .select("id, nombre, foto_url, raciones_base, minutos, receta_ingredientes(gramos, alimentos(kcal_100))")
+    .select("id, nombre, foto_url, tipo, region, etiquetas, raciones_base, minutos, receta_ingredientes(gramos, alimentos(kcal_100))")
     .order("nombre")
     .returns<RecetaFila[]>();
 
-  const lista = recetas ?? [];
+  const todas = recetas ?? [];
+  const lista = aplicar(todas, filtros);
 
   return (
     <main className="mx-auto max-w-md px-5 pb-28 pt-10">
@@ -33,7 +44,7 @@ export default async function Recetas() {
             Recetario
           </h1>
           <p className="mt-1.5 text-[13px] text-[var(--color-tenue)]">
-            {lista.length} {lista.length === 1 ? "receta" : "recetas"} de la casa
+            {todas.length} {todas.length === 1 ? "receta" : "recetas"} de la casa
           </p>
         </div>
         <Link
@@ -82,10 +93,14 @@ export default async function Recetas() {
         <span aria-hidden className="text-[var(--color-tenue)]">→</span>
       </Link>
 
+      {todas.length > 0 && <Filtros cuantas={lista.length} />}
+
       {!lista.length && (
         <div className="tarjeta mt-10 px-5 py-8 text-center">
           <p className="text-[14px] leading-relaxed">
-            Aquí van las recetas que de verdad cocináis.
+            {todas.length
+              ? "Ninguna receta cuadra con esos filtros."
+              : "Aquí van las recetas que de verdad cocináis."}
           </p>
           <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-tenue)]">
             Con quince o veinte ya tienes para montar menús sin repetir. No hace
@@ -96,20 +111,23 @@ export default async function Recetas() {
 
       <section className="mt-6 flex flex-col gap-2.5">
         {lista.map((r) => {
-          const kcal = r.receta_ingredientes.reduce(
-            (s, i) => s + (Number(i.gramos) * Number(i.alimentos?.kcal_100 ?? 0)) / 100,
-            0
-          );
           return (
             <article key={r.id} className="tarjeta flex items-center gap-3 px-3.5 py-3">
               <Miniatura nombre={r.nombre} foto={r.foto_url} />
               <Link href={`/recetas/${r.id}`} className="flex-1">
                 <h2 className="text-[14px] font-semibold">{r.nombre}</h2>
                 <p className="mt-0.5 text-[12px] text-[var(--color-tenue)]">
-                  <span className="cifra">{Math.round(kcal / r.raciones_base)}</span> kcal
-                  por ración · para {r.raciones_base}
+                  <span className="cifra">{kcalRacion(r)}</span> kcal
+                  {r.tipo ? ` · ${r.tipo}` : ""}
                   {r.minutos ? ` · ${r.minutos} min` : ""}
                 </p>
+                {(r.region || r.etiquetas?.length) && (
+                  <p className="mt-0.5 truncate text-[11px] text-[var(--color-tenue)]">
+                    {[r.region, ...(r.etiquetas ?? []).slice(0, 2)]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                )}
               </Link>
               <BorrarReceta id={r.id} nombre={r.nombre} />
             </article>
