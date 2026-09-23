@@ -239,13 +239,34 @@ export async function subirFoto(recetaId: string, datos: FormData) {
 
   const ruta = `${yo.hogar_id}/${recetaId}-${Date.now()}.jpg`;
 
-  const { error: e1 } = await supabase.storage
-    .from("recetas")
-    .upload(ruta, archivo, { contentType: "image/jpeg", upsert: true });
+  // Subimos con fetch en vez de con el cliente de Supabase porque así
+  // controlamos que el token del usuario viaje en la cabecera. Sin él,
+  // Storage nos trata como visitante anónimo y la política de
+  // 'authenticated' rechaza la subida.
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    console.error("FOTO: sin token de sesión");
+    return { error: "Tu sesión ha caducado. Vuelve a entrar." };
+  }
 
-  if (e1) {
-    console.error("FOTO: storage falla", JSON.stringify(e1));
-    return { error: `Storage: ${e1.message}` };
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const clave = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
+
+  const subida = await fetch(`${url}/storage/v1/object/recetas/${ruta}`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${session.access_token}`,
+      apikey: clave,
+      "content-type": "image/jpeg",
+      "x-upsert": "true",
+    },
+    body: await archivo.arrayBuffer(),
+  });
+
+  if (!subida.ok) {
+    const detalle = await subida.text();
+    console.error("FOTO: storage falla", subida.status, detalle);
+    return { error: `Storage ${subida.status}: ${detalle.slice(0, 200)}` };
   }
   console.log("FOTO: subida ok", ruta);
 
