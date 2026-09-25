@@ -3,6 +3,7 @@ import { exigirCasaActiva } from "@/lib/guardia";
 import { hoyISO } from "@/lib/objetivo";
 import { Navegacion } from "@/components/Navegacion";
 import { BarrasDias } from "@/components/BarrasDias";
+import { ValoracionMes } from "@/components/ValoracionMes";
 
 const META_AGUA = 8;
 
@@ -260,6 +261,8 @@ export default async function Estadisticas({
               <span className="cifra">{mediaAgua} vasos</span>
             </div>
           </section>
+
+          {mensual && <ValoracionMes diasApuntados={apuntados.length} />}
 
           {difPeso !== null && (
             <section className={`${tarjeta} mx-5 mt-3`}>
