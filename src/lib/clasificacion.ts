@@ -28,12 +28,13 @@ export const ETIQUETAS = [
   "verdura", "huevo", "patata", "setas",
   // forma
   "guiso", "horno", "plancha", "fritura", "sopa", "ensalada", "crudo",
+  "airfryer",
   // práctica
   "rápido", "olla exprés", "se congela bien", "mejor de un día para otro",
   "de aprovechamiento", "barato",
   // dieta
   "vegetariano", "vegano", "sin gluten", "sin lactosa", "picante",
-  "gusta a los niños",
+  "gusta a los niños", "alta cocina",
 ] as const;
 
 export type Etiqueta = (typeof ETIQUETAS)[number];

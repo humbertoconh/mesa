@@ -75,6 +75,25 @@ export default async function Recetas({
       </Link>
 
       <Link
+        href="/recetas/repasar"
+        className="tarjeta mt-2.5 flex items-center gap-3 px-4 py-3.5"
+      >
+        <span
+          aria-hidden
+          className="grid h-10 w-10 place-items-center rounded-full bg-[var(--color-azafran-claro)] text-[18px]"
+        >
+          🏷️
+        </span>
+        <span className="flex-1">
+          <span className="block text-[14px] font-semibold">Repasar clasificación</span>
+          <span className="block text-[12px] text-[var(--color-tenue)]">
+            Poner al día región y etiquetas de las que ya tienes.
+          </span>
+        </span>
+        <span aria-hidden className="text-[var(--color-tenue)]">→</span>
+      </Link>
+
+      <Link
         href="/recetas/compartidas"
         className="tarjeta mt-2.5 flex items-center gap-3 px-4 py-3.5"
       >

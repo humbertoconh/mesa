@@ -32,6 +32,9 @@ Reglas:
       o hay un paso crítico que no perdona (el punto del arroz de una
       paella, la emulsión de un pil pil, una masa, un caldo aparte).
   · etiquetas: de 3 a 6, las que de verdad apliquen. No las fuerces.
+    «airfryer» sólo si el plato se hace en freidora de aire.
+    «alta cocina» sólo si es un plato de restaurante, con técnica o
+    emplatado que no se hace un martes cualquiera en casa.
 
 Listas válidas:
 region: ${REGIONES.join(", ")}
