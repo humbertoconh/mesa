@@ -80,8 +80,19 @@ export async function generarLista(lunes: string, dias: string[]) {
     .select("gramos, seccion, receta_id, alimentos(nombre), recetas(raciones_base)")
     .in("receta_id", platos.map((p) => p.receta_id));
 
-  // Un mismo ingrediente puede salir en varios platos: se suma.
-  const suma = new Map<string, { cantidad: number; seccion: string }>();
+  // Un mismo ingrediente puede salir en varios platos, y escrito de
+  // formas distintas: «sal», «Sal», «SAL». Se agrupa por una clave
+  // normalizada (sin mayúsculas, sin acentos y sin espacios de sobra)
+  // pero se guarda el nombre tal y como mejor esté escrito.
+  const clave = (n: string) =>
+    n.trim().toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, " ");
+
+  const suma = new Map<
+    string,
+    { cantidad: number; seccion: string; nombres: Map<string, number> }
+  >();
 
   (ingredientes ?? []).forEach((i) => {
     const fila = i as unknown as {
@@ -90,18 +101,42 @@ export async function generarLista(lunes: string, dias: string[]) {
       alimentos: { nombre: string } | null;
       recetas: { raciones_base: number } | null;
     };
-    const nombre = fila.alimentos?.nombre;
+    const nombre = fila.alimentos?.nombre?.trim();
     if (!nombre) return;
+
     const base = fila.recetas?.raciones_base || 4;
-    const veces = platos.filter((p) => p.receta_id === (i as { receta_id: string }).receta_id).length;
+    const veces = platos.filter(
+      (p) => p.receta_id === (i as { receta_id: string }).receta_id
+    ).length;
     const cantidad = (Number(fila.gramos) * comensales * veces) / base;
 
-    const previo = suma.get(nombre);
-    suma.set(nombre, {
-      cantidad: (previo?.cantidad ?? 0) + cantidad,
-      seccion: previo?.seccion ?? fila.seccion,
-    });
+    const k = clave(nombre);
+    const previo = suma.get(k);
+    if (previo) {
+      previo.cantidad += cantidad;
+      previo.nombres.set(nombre, (previo.nombres.get(nombre) ?? 0) + 1);
+    } else {
+      suma.set(k, {
+        cantidad,
+        seccion: fila.seccion,
+        nombres: new Map([[nombre, 1]]),
+      });
+    }
   });
+
+  /** De todas las formas de escribirlo, la más repetida; a igualdad, la
+   *  que lleve tilde o empiece por mayúscula, que suele estar mejor. */
+  function mejorNombre(nombres: Map<string, number>) {
+    return [...nombres.entries()].sort((a, b) => {
+      if (b[1] !== a[1]) return b[1] - a[1];
+      const acentoA = /[áéíóúñü]/i.test(a[0]) ? 1 : 0;
+      const acentoB = /[áéíóúñü]/i.test(b[0]) ? 1 : 0;
+      if (acentoA !== acentoB) return acentoB - acentoA;
+      const mayA = /^[A-ZÁÉÍÓÚÑ]/.test(a[0]) ? 1 : 0;
+      const mayB = /^[A-ZÁÉÍÓÚÑ]/.test(b[0]) ? 1 : 0;
+      return mayB - mayA;
+    })[0][0];
+  }
 
   const { data: yaComprado } = await supabase
     .from("lista_compra")
@@ -109,7 +144,7 @@ export async function generarLista(lunes: string, dias: string[]) {
     .eq("hogar_id", hogarId)
     .eq("semana", lunes)
     .eq("comprado", true);
-  const marcados = new Set((yaComprado ?? []).map((p) => p.producto));
+  const marcados = new Set((yaComprado ?? []).map((p) => clave(p.producto)));
 
   await supabase
     .from("lista_compra")
@@ -118,13 +153,13 @@ export async function generarLista(lunes: string, dias: string[]) {
     .eq("semana", lunes)
     .eq("manual", false);
 
-  const filas = [...suma.entries()].map(([producto, d]) => ({
+  const filas = [...suma.values()].map((d) => ({
     hogar_id: hogarId,
-    producto,
+    producto: mejorNombre(d.nombres),
     cantidad: Math.round(d.cantidad),
     unidad: "g",
     seccion: d.seccion,
-    comprado: marcados.has(producto),
+    comprado: marcados.has(clave(mejorNombre(d.nombres))),
     semana: lunes,
   }));
 
