@@ -6,7 +6,7 @@ import type { AlimentoDesglosado } from "@/lib/tipos";
 
 export type Habitual = AlimentoDesglosado & { momento: string; veces: number };
 
-export function Habituales({ lista }: { lista: Habitual[] }) {
+export function Habituales({ lista, fecha }: { lista: Habitual[]; fecha: string }) {
   const [pendiente, empezar] = useTransition();
   const [tocado, setTocado] = useState<string | null>(null);
 
@@ -23,7 +23,7 @@ export function Habituales({ lista }: { lista: Habitual[] }) {
             key={h.nombre}
             onClick={() => {
               setTocado(h.nombre);
-              empezar(() => { repetir(h); });
+              empezar(() => { repetir(h, fecha); });
             }}
             disabled={pendiente}
             className={`rounded-full bg-[var(--color-azafran-claro)] px-3.5 py-2 text-left text-[13px] font-medium text-[#7a5410] ${

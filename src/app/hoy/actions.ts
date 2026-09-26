@@ -21,18 +21,37 @@ interface RecetaCompleta {
   }[];
 }
 
+/**
+ * Un día válido para apuntar: ni en el futuro ni de hace más de un año.
+ * Si llega cualquier otra cosa, se apunta en hoy.
+ */
+function diaValido(fecha?: string): string {
+  const hoy = hoyISO();
+  if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return hoy;
+  if (fecha > hoy) return hoy;
+
+  const limite = new Date(hoy + "T12:00:00");
+  limite.setFullYear(limite.getFullYear() - 1);
+  if (fecha < limite.toISOString().slice(0, 10)) return hoy;
+
+  return fecha;
+}
+
 export async function guardarComida(
   momento: string,
   descripcion: string,
-  alimentos: AlimentoDesglosado[]
+  alimentos: AlimentoDesglosado[],
+  fecha?: string
 ) {
   const supabase = await clienteServidor();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/entrar");
 
+  const dia = diaValido(fecha);
+
   const filas = alimentos.map((a) => ({
     miembro_id: user.id,
-    fecha: hoyISO(),
+    fecha: dia,
     momento,
     descripcion: a.nombre,
     gramos: a.gramos,
@@ -65,7 +84,8 @@ export async function borrarRegistro(id: string) {
  * que mande el navegador: si no, cualquiera podría apuntarse el plato
  * con las calorías que le diera la gana.
  */
-export async function apuntarDelMenu(fecha: string, momento: Momento) {
+export async function apuntarDelMenu(fechaPedida: string, momento: Momento) {
+  const fecha = diaValido(fechaPedida);
   const supabase = await clienteServidor();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/entrar");
@@ -138,14 +158,17 @@ export async function apuntarDelMenu(fecha: string, momento: Momento) {
 }
 
 /** Repite una comida tal cual la apuntaste otro día. */
-export async function repetir(habitual: AlimentoDesglosado & { momento: string }) {
+export async function repetir(
+  habitual: AlimentoDesglosado & { momento: string },
+  fecha?: string
+) {
   const supabase = await clienteServidor();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/entrar");
 
   const { error } = await supabase.from("registro_comidas").insert({
     miembro_id: user.id,
-    fecha: hoyISO(),
+    fecha: diaValido(fecha),
     momento: habitual.momento,
     descripcion: habitual.nombre,
     gramos: habitual.gramos,

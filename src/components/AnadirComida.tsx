@@ -9,7 +9,7 @@ import type { AlimentoDesglosado } from "@/lib/tipos";
 
 type Modo = "cerrado" | "elegir" | "texto" | "escaner" | "foto" | "producto";
 
-export function AnadirComida() {
+export function AnadirComida({ fecha }: { fecha: string }) {
   const [modo, setModo] = useState<Modo>("cerrado");
   const [texto, setTexto] = useState("");
   const [momento, setMomento] = useState<string>(momentoSugerido());
@@ -94,7 +94,7 @@ export function AnadirComida() {
   async function guardar() {
     if (!lista.length) return;
     setCargando(true);
-    const r = await guardarComida(momento, texto, lista);
+    const r = await guardarComida(momento, texto, lista, fecha);
     setCargando(false);
     if (r?.error) return setError(r.error);
     cerrar();

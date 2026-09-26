@@ -8,11 +8,31 @@ import { FilaRegistro } from "@/components/Registro";
 import { Navegacion } from "@/components/Navegacion";
 import { PlatoDeHoy } from "@/components/PlatoDeHoy";
 import { Habituales, type Habitual } from "@/components/Habituales";
+import { CambiarDia } from "@/components/CambiarDia";
 import { calcularRacion } from "@/lib/racion";
 import type { ObjetivoFila, Registro } from "@/lib/tipos";
 
-export default async function Hoy() {
+export default async function Hoy({
+  searchParams,
+}: {
+  searchParams: Promise<{ fecha?: string }>;
+}) {
+  const { fecha: pedida } = await searchParams;
   const { supabase, user } = await exigirCasaActiva();
+
+  const hoy = hoyISO();
+
+  // El día que se está mirando. Ni futuro ni de hace más de un año.
+  const limite = new Date(hoy + "T12:00:00");
+  limite.setFullYear(limite.getFullYear() - 1);
+  const valida =
+    pedida &&
+    /^\d{4}-\d{2}-\d{2}$/.test(pedida) &&
+    pedida <= hoy &&
+    pedida >= limite.toISOString().slice(0, 10);
+  const dia = valida ? pedida : hoy;
+  const esHoy = dia === hoy;
+
 
   const { data: miembro } = await supabase
     .from("miembros")
@@ -37,7 +57,7 @@ export default async function Hoy() {
     .from("registro_comidas")
     .select("*")
     .eq("miembro_id", user.id)
-    .eq("fecha", hoyISO())
+    .eq("fecha", dia)
     .order("creado_en")
     .returns<Registro[]>();
 
@@ -45,14 +65,17 @@ export default async function Hoy() {
   const suma = (c: keyof Registro) =>
     filas.reduce((s, r) => s + Number(r[c] ?? 0), 0);
 
-  const fecha = fechaLarga();
-  const hoy = hoyISO();
+  const fecha = esHoy
+    ? fechaLarga()
+    : new Date(dia + "T12:00:00").toLocaleDateString("es-ES", {
+        weekday: "long", day: "numeric", month: "long",
+      });
 
   // Lo que toca hoy según el menú de la casa, con mi ración calculada.
   const { data: puestos } = await supabase
     .from("menu_semanal")
     .select("momento, recetas(id, nombre, foto_url, raciones_base, receta_ingredientes(gramos, alimentos(kcal_100)))")
-    .eq("fecha", hoy);
+    .eq("fecha", dia);
 
   const kcalDia = (objetivo.kcal_min + objetivo.kcal_max) / 2;
 
@@ -90,7 +113,7 @@ export default async function Hoy() {
     .from("registro_comidas")
     .select("descripcion, momento, gramos, kcal, prot_g, carb_g, grasa_g")
     .eq("miembro_id", user.id)
-    .neq("fecha", hoy)
+    .neq("fecha", dia)
     .gte("fecha", new Date(Date.now() - 60 * 86400000).toISOString().slice(0, 10))
     .order("creado_en", { ascending: false })
     .limit(300);
@@ -125,11 +148,11 @@ export default async function Hoy() {
     <main className="mx-auto max-w-md pb-28">
       <header className="cabecera">
         <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-none">
-          Hola, {miembro.nombre}
+          {esHoy ? `Hola, ${miembro.nombre}` : "Otro día"}
         </h1>
-        <p className="mt-1.5 text-[12.5px] opacity-80 first-letter:uppercase">
-          {fecha}
-        </p>
+        <div className="mt-2.5">
+          <CambiarDia fecha={dia} hoy={hoy} texto={fecha} />
+        </div>
 
         <div className="mt-5">
           <Anillo
@@ -152,11 +175,11 @@ export default async function Hoy() {
       {platosHoy.length > 0 && (
         <section className="mt-7 px-5">
           <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-tenue)]">
-            Hoy en el menú
+            {esHoy ? "Hoy en el menú" : "Ese día tocaba"}
           </h2>
           <div className="mt-2.5 flex flex-col gap-2.5">
             {platosHoy.map((p) => (
-              <PlatoDeHoy key={p.momento} fecha={hoy} {...p} />
+              <PlatoDeHoy key={p.momento} fecha={dia} {...p} />
             ))}
           </div>
         </section>
@@ -165,7 +188,7 @@ export default async function Hoy() {
       <section className="mt-7 flex flex-col gap-3 px-5">
         {filas.length > 0 && (
           <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-tenue)]">
-            Lo que llevas hoy
+            {esHoy ? "Lo que llevas hoy" : "Lo de ese día"}
           </h2>
         )}
 
@@ -199,16 +222,22 @@ export default async function Hoy() {
             >
               🍳
             </div>
-            <p className="mt-3 text-[14px]">Todavía no has apuntado nada hoy.</p>
+            <p className="mt-3 text-[14px]">
+              {esHoy
+                ? "Todavía no has apuntado nada hoy."
+                : "Ese día no apuntaste nada."}
+            </p>
             <p className="mt-1 text-[12.5px] text-[var(--color-tenue)]">
-              Empieza por el desayuno, que es el que menos cuesta.
+              {esHoy
+                ? "Empieza por el desayuno, que es el que menos cuesta."
+                : "Puedes apuntarlo ahora si te acuerdas."}
             </p>
           </div>
         )}
 
-        {habituales.length > 0 && <Habituales lista={habituales} />}
+        {habituales.length > 0 && <Habituales lista={habituales} fecha={dia} />}
 
-        <AnadirComida />
+        <AnadirComida fecha={dia} />
       </section>
 
       <Navegacion />
