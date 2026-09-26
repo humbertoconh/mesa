@@ -8,7 +8,7 @@ import { SelectorPlato } from "@/components/SelectorPlato";
 import { BotonLista } from "@/components/BotonLista";
 import { BotonSemana } from "@/components/BotonSemana";
 
-const MOMENTOS_MENU: Momento[] = ["comida", "cena"];
+const MOMENTOS_MENU: Momento[] = ["comida", "merienda", "cena"];
 
 interface RecetaConIngredientes {
   id: string;

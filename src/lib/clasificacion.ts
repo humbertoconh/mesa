@@ -13,8 +13,8 @@ export const REGIONES = [
 ] as const;
 
 export const TIPOS = [
-  "entrante", "primero", "segundo", "plato único",
-  "guarnición", "postre", "desayuno", "para picar",
+  "desayuno", "almuerzo", "entrante", "primero", "segundo",
+  "plato único", "guarnición", "merienda", "postre", "para picar",
 ] as const;
 
 export const TEMPORADAS = ["todo el año", "verano", "invierno", "entretiempo"] as const;

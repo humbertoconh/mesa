@@ -19,6 +19,8 @@ etiquetas: ${ETIQUETAS.join(", ")}
 Criterios:
 - region: si no es de una comunidad concreta, "De toda España"; si no es
   español, "De fuera".
+- tipo: «almuerzo» es el bocado de media mañana y «merienda» el de media
+  tarde, no comidas principales.
 - dificultad: NO por el tiempo total, sino por los minutos con las manos
   ocupadas y si hay algún paso donde te la juegas. Unas lentejas tardan
   dos horas y son fáciles.

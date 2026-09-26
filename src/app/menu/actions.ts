@@ -227,8 +227,14 @@ export async function proponerSemana(dias: string[]) {
     PRINCIPALES.find((x) => p.etiquetas.includes(x)) ?? "otro";
 
   /** Lo que pega en cada momento: la comida carga, la cena aligera. */
-  function encaje(p: Plato, momento: "comida" | "cena") {
+  function encaje(p: Plato, momento: "comida" | "merienda" | "cena") {
     let n = 0;
+    if (momento === "merienda") {
+      if (["merienda", "postre", "para picar", "desayuno"].includes(p.tipo)) n += 4;
+      if (p.kcal < 350) n += 3;
+      if (p.kcal > 500) n -= 4;
+      return n;
+    }
     if (momento === "comida") {
       if (["primero", "plato único"].includes(p.tipo)) n += 3;
       if (p.etiquetas.some((e) => ["arroz", "legumbre", "guiso", "pasta"].includes(e))) n += 2;

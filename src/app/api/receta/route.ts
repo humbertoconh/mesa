@@ -20,7 +20,8 @@ Reglas:
 - Clasificación. Usa SÓLO los valores de estas listas, tal cual:
   · region: de dónde es el plato. Si no es de una comunidad concreta pon
     "De toda España"; si no es español, "De fuera".
-  · tipo: qué papel hace en la mesa.
+  · tipo: qué papel hace en la mesa. «almuerzo» es el bocado de media
+    mañana y «merienda» el de media tarde, no comidas principales.
   · temporada: cuándo apetece. Si da igual, "todo el año".
   · dificultad: NO la mires por el tiempo total, mírala por el tiempo con
     las manos ocupadas y por si hay algún paso donde te la juegas.
