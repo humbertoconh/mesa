@@ -6,6 +6,7 @@ import { ModoCocina } from "@/components/ModoCocina";
 import { RecetaEscalada } from "@/components/RecetaEscalada";
 import { FotoReceta } from "@/components/FotoReceta";
 import { Compartir } from "@/components/Compartir";
+import { LectorPasos } from "@/components/LectorPasos";
 
 interface Ficha {
   id: string;
@@ -119,16 +120,7 @@ export default async function FichaReceta({
       {pasos.length > 0 && (
         <>
           <h2 className="mt-7 text-[13px] font-medium">Cómo se hace</h2>
-          <ol className="mt-3 flex flex-col gap-4">
-            {pasos.map((paso, i) => (
-              <li key={i} className="flex gap-3.5">
-                <span className="cifra grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[var(--color-pino-claro)] text-[12px] font-medium text-[var(--color-pino)]">
-                  {i + 1}
-                </span>
-                <p className="text-[14px] leading-relaxed">{paso}</p>
-              </li>
-            ))}
-          </ol>
+          <LectorPasos pasos={pasos} />
 
           <div className="mt-7">
             <ModoCocina />
