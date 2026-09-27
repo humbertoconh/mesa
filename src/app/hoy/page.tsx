@@ -9,6 +9,7 @@ import { Navegacion } from "@/components/Navegacion";
 import { PlatoDeHoy } from "@/components/PlatoDeHoy";
 import { Habituales, type Habitual } from "@/components/Habituales";
 import { CambiarDia } from "@/components/CambiarDia";
+import { CopiarDia, type DiaCandidato } from "@/components/CopiarDia";
 import { calcularRacion } from "@/lib/racion";
 import type { ObjetivoFila, Registro } from "@/lib/tipos";
 
@@ -111,7 +112,7 @@ export default async function Hoy({
   // Lo que más repites: sirve para apuntarlo de un toque.
   const { data: historico } = await supabase
     .from("registro_comidas")
-    .select("descripcion, momento, gramos, kcal, prot_g, carb_g, grasa_g")
+    .select("fecha, descripcion, momento, gramos, kcal, prot_g, carb_g, grasa_g")
     .eq("miembro_id", user.id)
     .neq("fecha", dia)
     .gte("fecha", new Date(Date.now() - 60 * 86400000).toISOString().slice(0, 10))
@@ -138,6 +139,21 @@ export default async function Hoy({
       veces: 1,
     });
   });
+
+  // Días recientes con algo apuntado, para poder copiarlos tal cual.
+  const resumenDias = new Map<string, { kcal: number; platos: number }>();
+  (historico ?? []).forEach((r) => {
+    const f = (r as { fecha: string }).fecha;
+    const a = resumenDias.get(f) ?? { kcal: 0, platos: 0 };
+    a.kcal += Number(r.kcal);
+    a.platos++;
+    resumenDias.set(f, a);
+  });
+
+  const candidatos: DiaCandidato[] = [...resumenDias.entries()]
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .slice(0, 7)
+    .map(([fecha, d]) => ({ fecha, kcal: d.kcal, platos: d.platos }));
 
   const habituales = [...cuenta.values()]
     .filter((h) => h.veces >= 2)
@@ -236,6 +252,8 @@ export default async function Hoy({
         )}
 
         {habituales.length > 0 && <Habituales lista={habituales} fecha={dia} />}
+
+        <CopiarDia destino={dia} candidatos={candidatos} />
 
         <AnadirComida fecha={dia} />
       </section>

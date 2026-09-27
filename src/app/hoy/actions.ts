@@ -183,3 +183,36 @@ export async function repetir(
   revalidatePath("/hoy");
   return { ok: true };
 }
+
+/**
+ * Copia todo lo apuntado en un día a otro. Para el desayuno de siempre
+ * y para los días que se repiten tal cual.
+ *
+ * No borra lo que ya hubiera en el día destino: se suma. Si había algo
+ * de más, se quita con la × de su línea.
+ */
+export async function copiarDia(origen: string, destino: string) {
+  const supabase = await clienteServidor();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/entrar");
+
+  const desde = diaValido(origen);
+  const hasta = diaValido(destino);
+  if (desde === hasta) return { error: "Ese es el mismo día." };
+
+  const { data: filas } = await supabase
+    .from("registro_comidas")
+    .select("momento, descripcion, gramos, kcal, prot_g, carb_g, grasa_g, alimento_id, receta_id, origen")
+    .eq("miembro_id", user.id)
+    .eq("fecha", desde);
+
+  if (!filas?.length) return { error: "Ese día no tiene nada apuntado." };
+
+  const copias = filas.map((f) => ({ ...f, miembro_id: user.id, fecha: hasta }));
+
+  const { error } = await supabase.from("registro_comidas").insert(copias);
+  if (error) return { error: error.message };
+
+  revalidatePath("/hoy");
+  return { ok: true, total: copias.length };
+}
