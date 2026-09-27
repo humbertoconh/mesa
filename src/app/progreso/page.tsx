@@ -33,7 +33,7 @@ export default async function Progreso() {
 
   const { data: objetivo } = await supabase
     .from("objetivos")
-    .select("kcal_min, kcal_max, meta, desde")
+    .select("kcal_min, kcal_max, meta, desde, metodo, gasto_estimado")
     .eq("miembro_id", user.id)
     .order("desde", { ascending: false })
     .limit(1)
@@ -109,10 +109,25 @@ export default async function Progreso() {
               {objetivo.kcal_max.toLocaleString("es-ES")} kcal
             </span>
           </div>
-          <p className="mt-1.5 text-[12px] leading-relaxed text-[var(--color-tenue)]">
-            Se ajusta solo cada vez que apuntas el peso, según lo que esté
-            pasando de verdad y no según la previsión del primer día.
-          </p>
+          {objetivo.metodo === "medido" && objetivo.gasto_estimado ? (
+            <>
+              <div className="mt-2 flex items-baseline justify-between border-t border-[var(--color-linea)] pt-2 text-[12px]">
+                <span className="text-[var(--color-tenue)]">Tu gasto medido</span>
+                <span className="cifra font-medium text-[var(--color-pino)]">
+                  {objetivo.gasto_estimado.toLocaleString("es-ES")} kcal/día
+                </span>
+              </div>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-[var(--color-tenue)]">
+                No sale de una fórmula: se deduce de lo que has comido y de cómo
+                ha cambiado tu peso. Manda la báscula.
+              </p>
+            </>
+          ) : (
+            <p className="mt-1.5 text-[12px] leading-relaxed text-[var(--color-tenue)]">
+              Calculado con fórmula. Cuando lleves dos semanas apuntando peso y
+              comidas, pasará a medirse con tus datos reales.
+            </p>
+          )}
         </section>
       )}
 

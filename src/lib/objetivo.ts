@@ -33,12 +33,23 @@ function metabolismoBasal({ kg, altura_cm, edad, sexo }: DatosPersona): number {
 
 export function calcularObjetivo(datos: DatosPersona): Objetivo {
   const gasto = metabolismoBasal(datos) * datos.actividad;
+  return repartir(gasto, datos.kg, datos.meta);
+}
 
-  const factor = { perder: 0.85, mantener: 1, ganar: 1.1 }[datos.meta];
+/**
+ * Mismo reparto, pero partiendo de un gasto que ya conocemos: el medido
+ * con la báscula y lo comido, que vale más que cualquier fórmula.
+ */
+export function objetivoDesdeGasto(gasto: number, kg: number, meta: Meta): Objetivo {
+  return repartir(gasto, kg, meta);
+}
+
+function repartir(gasto: number, kg: number, meta: Meta): Objetivo {
+  const factor = { perder: 0.85, mantener: 1, ganar: 1.1 }[meta];
   const centro = gasto * factor;
 
   // Proteína por kilo de peso. Al perder se sube para no dejarse músculo.
-  const prot_g = Math.round(datos.kg * (datos.meta === "perder" ? 2.0 : 1.8));
+  const prot_g = Math.round(kg * (meta === "perder" ? 2.0 : 1.8));
 
   // La grasa no baja del 25% de las calorías: por debajo se resiente
   // el descanso y las hormonas.

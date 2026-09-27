@@ -1,3 +1,5 @@
+import { tendencia } from "@/lib/gasto";
+
 interface Punto {
   fecha: string;
   kg: number;
@@ -31,6 +33,9 @@ export function GraficaPeso({ puntos }: { puntos: Punto[] }) {
   const y = (kg: number) => H - M - ((kg - base) / rango) * (H - M * 2);
 
   const linea = puntos.map((p, i) => `${x(i)},${y(p.kg)}`).join(" ");
+  // La tendencia es lo que de verdad dice algo: el peso diario es agua y sal.
+  const suave = tendencia(puntos);
+  const lineaSuave = suave.map((p, i) => `${x(i)},${y(p.kg)}`).join(" ");
   const primero = puntos[0];
   const ultimo = puntos[puntos.length - 1];
   const dif = ultimo.kg - primero.kg;
@@ -46,12 +51,16 @@ export function GraficaPeso({ puntos }: { puntos: Punto[] }) {
           <line key={f} x1={M} x2={W - M} y1={M + f * (H - M * 2)} y2={M + f * (H - M * 2)}
                 stroke="var(--color-pino-claro)" strokeWidth="1" />
         ))}
-        <polyline points={linea} fill="none" stroke="var(--color-pino)"
-                  strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        <polyline points={linea} fill="none" stroke="var(--color-linea)"
+                  strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+        <polyline points={lineaSuave} fill="none" stroke="var(--color-pino)"
+                  strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
         {puntos.map((p, i) => (
-          <circle key={p.fecha} cx={x(i)} cy={y(p.kg)} r={i === puntos.length - 1 ? 4 : 2.5}
-                  fill="var(--color-pino)" />
+          <circle key={p.fecha} cx={x(i)} cy={y(p.kg)} r={i === puntos.length - 1 ? 3.5 : 2}
+                  fill="var(--color-linea)" />
         ))}
+        <circle cx={x(suave.length - 1)} cy={y(suave[suave.length - 1].kg)} r="4.5"
+                fill="var(--color-pino)" />
       </svg>
 
       <div className="mt-1 flex justify-between text-[11px] text-[var(--color-tenue)]">
