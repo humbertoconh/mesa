@@ -14,6 +14,7 @@ interface Fila {
   unidad: string | null;
   seccion: string;
   comprado: boolean;
+  basico: boolean;
 }
 
 export default async function Compra({
@@ -28,12 +29,16 @@ export default async function Compra({
 
   const { data: productos } = await supabase
     .from("lista_compra")
-    .select("id, producto, cantidad, unidad, seccion, comprado")
+    .select("id, producto, cantidad, unidad, seccion, comprado, basico")
     .eq("semana", lunes)
     .order("producto")
     .returns<Fila[]>();
 
-  const lista = productos ?? [];
+  const todos = productos ?? [];
+  // Los básicos de la despensa no se mezclan con la compra de verdad.
+  const lista = todos.filter((p) => !p.basico);
+  const deDespensa = todos.filter((p) => p.basico);
+
   const porSeccion = new Map<string, Fila[]>();
   lista.forEach((p) => {
     const actual = porSeccion.get(p.seccion) ?? [];
@@ -91,8 +96,46 @@ export default async function Compra({
             ))}
           </section>
 
+          {deDespensa.length > 0 && (
+            <section className="mt-6 px-5">
+              <div className="tarjeta px-4 py-3.5">
+                <h2 className="text-[13px] font-medium">De tu despensa</h2>
+                <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-tenue)]">
+                  Hace falta para los platos de la semana, pero de esto sueles
+                  tener. Míralo por encima, no hace falta comprarlo.
+                </p>
+                <ul className="mt-2 divide-y divide-[var(--color-linea)]">
+                  {deDespensa.map((p) => (
+                    <FilaCompra key={p.id} {...p} />
+                  ))}
+                </ul>
+              </div>
+            </section>
+          )}
+
           <div className="mt-6 px-5">
             <AnadirProducto semana={lunes} />
+          </div>
+
+          <div className="mt-3 px-5">
+            <Link
+              href="/compra/despensa"
+              className="tarjeta flex items-center gap-3 px-4 py-3.5"
+            >
+              <span
+                aria-hidden
+                className="grid h-10 w-10 place-items-center rounded-full bg-[var(--color-pino-claro)] text-[18px]"
+              >
+                🧂
+              </span>
+              <span className="flex-1">
+                <span className="block text-[14px] font-semibold">La despensa</span>
+                <span className="block text-[12px] text-[var(--color-tenue)]">
+                  Marca lo que siempre tienes y deja de salirte en la compra.
+                </span>
+              </span>
+              <span aria-hidden className="text-[var(--color-tenue)]">→</span>
+            </Link>
           </div>
 
           <p className="mt-5 px-5 text-[12px] leading-relaxed text-[var(--color-tenue)]">

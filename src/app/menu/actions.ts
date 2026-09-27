@@ -138,6 +138,12 @@ export async function generarLista(lunes: string, dias: string[]) {
     })[0][0];
   }
 
+  const { data: enDespensa } = await supabase
+    .from("despensa")
+    .select("clave")
+    .eq("hogar_id", hogarId);
+  const basicos = new Set((enDespensa ?? []).map((d) => d.clave));
+
   const { data: yaComprado } = await supabase
     .from("lista_compra")
     .select("producto")
@@ -160,6 +166,7 @@ export async function generarLista(lunes: string, dias: string[]) {
     unidad: "g",
     seccion: d.seccion,
     comprado: marcados.has(clave(mejorNombre(d.nombres))),
+    basico: basicos.has(clave(mejorNombre(d.nombres))),
     semana: lunes,
   }));
 
